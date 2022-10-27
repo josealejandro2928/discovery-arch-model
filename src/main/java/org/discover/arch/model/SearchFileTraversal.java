@@ -9,7 +9,7 @@ import java.util.*;
 
 public class SearchFileTraversal {
     String rootPath;
-    List<String> extentions;
+    List<String> extensions;
     List<String> searchPaths;
     String logfilePath;
     List<String> dataFilesFound = new ArrayList<>();
@@ -19,16 +19,16 @@ public class SearchFileTraversal {
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts) throws Exception {
         File file = new File(rootPath);
         if (!file.exists())
-            throw new Exception("The rootPath: " + rootPath + "does not exists");
+            throw new Exception("The rootPath: " + rootPath + " does not exists");
         this.rootPath = rootPath;
         for (String p : searchPaths) {
             file = new File(p);
             if (!file.exists()) {
-                throw new Exception("The path: " + p + "does not exists");
+                throw new Exception("The path: " + p + " does not exists");
             }
         }
         this.searchPaths = Arrays.asList(searchPaths);
-        this.extentions = Arrays.asList(exts);
+        this.extensions = Arrays.asList(exts);
     }
 
     public List<String> searchForFiles(boolean storeOnRootPath, boolean verbose) {
@@ -36,6 +36,7 @@ public class SearchFileTraversal {
         int totalFiles = 0;
         long startTime = System.nanoTime();
         Queue<String> queue = new LinkedList<>(this.searchPaths);
+        System.out.println("SCANNING FILES ...");
         while (queue.size() > 0) {
             String pathFileOrArchive = queue.poll();
             totalFiles++;
@@ -54,15 +55,15 @@ public class SearchFileTraversal {
                 }
             } else {
                 String filePath = file.getPath();
-                String[] chunksFileString = filePath.split("\\.");
-                String ext = chunksFileString[chunksFileString.length - 1];
-                if (this.extentions.contains(ext)) {
+                String ext = getExtension(filePath);
+                if (this.extensions.contains(ext)) {
                     this.dataFilesFound.add(filePath);
                 }
             }
         }
 
         long endTime = System.nanoTime();
+        System.out.println("SCANNING COMPLETED");
         if (storeOnRootPath) {
             try {
                 this.logfilePath = Paths.get(this.rootPath, "files-founded.txt").toString();
@@ -91,7 +92,13 @@ public class SearchFileTraversal {
     @Override
     public String toString() {
         return "rootPath: " + this.rootPath + "; " + "searchPaths: " +
-                this.searchPaths + "; " + "exts: " + this.extentions;
+                this.searchPaths + "; " + "exts: " + this.extensions;
 
+    }
+
+    static String getExtension(String path) {
+        if (!path.contains(".")) return "txt";
+        String[] chunksFileString = path.split("\\.");
+        return chunksFileString[chunksFileString.length - 1];
     }
 }

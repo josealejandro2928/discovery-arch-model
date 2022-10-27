@@ -1,0 +1,6 @@
+{
+  "rootPath":"/mnt/DATA/00-GSSI/00-WORK",
+  "archivesForSearching": ["test-repo"],
+  "extensionsForSearching": ["aadl","pdf"],
+  "outputFolderName": "output-discover"
+}
