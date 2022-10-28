@@ -37,10 +37,13 @@ public class Main {
         }
         //////////////////////////////////////////////////////
         try {
-            SearchFileTraversal fileDiscover = new SearchFileTraversal(rootPath, pathForSearching, extensionsForSearching);
+            SearchFileTraversal fileDiscover = new SearchFileTraversal(rootPath, pathForSearching, extensionsForSearching)
+                    .setFolderOutPutName(outputFolderName);
             ArchModelConverter archModelConverter = new ArchModelConverter(rootPath)
                     .setExtensions(Arrays.asList(extensionsForSearching))
                     .setFolderOutputName(outputFolderName);
+            archModelConverter.createFolderOutput();
+
             System.out.println("*********************STAGE 1********************");
             List<String> filesFound = fileDiscover.searchForFiles(true, false);
             System.out.println("SCANNING RESULTS: " + fileDiscover.scanningResult);

@@ -9,6 +9,7 @@ import java.util.*;
 
 public class SearchFileTraversal {
     String rootPath;
+    String folderOutputName;
     List<String> extensions;
     List<String> searchPaths;
     String logfilePath;
@@ -29,6 +30,11 @@ public class SearchFileTraversal {
         }
         this.searchPaths = Arrays.asList(searchPaths);
         this.extensions = Arrays.asList(exts);
+    }
+
+    public SearchFileTraversal setFolderOutPutName(String outFolder) {
+        this.folderOutputName = outFolder;
+        return this;
     }
 
     public List<String> searchForFiles(boolean storeOnRootPath, boolean verbose) {
@@ -66,7 +72,7 @@ public class SearchFileTraversal {
         System.out.println("SCANNING COMPLETED");
         if (storeOnRootPath) {
             try {
-                this.logfilePath = Paths.get(this.rootPath, "files-founded.txt").toString();
+                this.logfilePath = Paths.get(this.rootPath, this.folderOutputName, "files-founded.txt").toString();
                 FileWriter myWriter = new FileWriter(this.logfilePath);
                 myWriter.write(String.join("\n", this.dataFilesFound));
                 if (this.dataFilesError.size() > 0) {

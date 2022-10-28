@@ -1,6 +1,6 @@
 {
-  "rootPath":"/mnt/DATA/00-GSSI/00-WORK",
-  "archivesForSearching": ["test-repo"],
+  "rootPath":"/mnt/DATA/00-GSSI/00-WORK/EXAMPLE",
+  "archivesForSearching": ["models-repo"],
   "extensionsForSearching": ["aadl","pdf"],
-  "outputFolderName": "output-discover"
+  "outputFolderName": "output-processing"
 }

@@ -66,14 +66,10 @@ public class ArchModelConverter {
     public void initProcessing() throws Exception {
         if (this.dataModelFiles.size() == 0)
             throw new Exception("There is not filesModelPath for processing");
-        System.out.println("*********************STAGE 2********************");
-        System.out.println("CREATING THE FOLDER STRUCTURE...");
-        this.createFolderOutput();
-        System.out.println("CREATING THE FOLDER STRUCTURE COMPLETED");
         System.out.println("COPYING TO FOLDERS THE FILES...");
         this.copyFoundedFiles();
         System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
-        System.out.println("*********************STAGE 3********************");
+        System.out.println("*********************STAGE 2********************");
         System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
         this.convertModels();
         System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED");
@@ -84,12 +80,14 @@ public class ArchModelConverter {
 
 
     private void copyFoundedFiles() throws Exception {
+        int id = 1;
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
             File file = new File(pathFile);
             Path originalPath = Paths.get(pathFile);
-            Path copied = Paths.get(Paths.get(this.rootPath, this.folderOutputName, extension, file.getName()).toString());
+            Path copied = Paths.get(Paths.get(this.rootPath, this.folderOutputName, extension, id + "_" + file.getName()).toString());
             Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+            id++;
         }
     }
 
@@ -114,37 +112,60 @@ public class ArchModelConverter {
     }
 
     private void convertModels() throws Exception {
+        int id = 0;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
             if (this.converterModelJarPlugginsMap.containsKey(extension)) {
                 Path currentWorkingDir = Paths.get("").toAbsolutePath();
                 Path pathTOJarFile = Paths.get(currentWorkingDir.toString(), "jar", converterModelJarPlugginsMap.get(extension));
-                List<String> args = List.of(new String[]{pathFile, outPathXMI});
+                List<String> args = List.of(new String[]{pathFile, outPathXMI, id + ""});
                 jarExe.executeJar(pathTOJarFile.toString(), args);
                 processingOutput();
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
             }
+            id++;
         }
     }
 
-    private void processingOutput() {
-        List<String> ouputData = this.jarExe.getOutput().lines().toList();
-        String outputSTR = ouputData.stream().filter(x -> x.contains("OUTPUT:")).toList().get(0);
-        String[] chunks = outputSTR.split("OUTPUT:");
-        outputSTR = chunks[chunks.length - 1];
-        outputSTR = outputSTR.trim();
-        JSONObject data = new JSONObject(outputSTR);
-        System.out.println(data.toString().substring(0, 150) + "...");
+    private void processingOutput() throws Exception {
+        List<String> outputData = this.jarExe.getOutput().lines().toList();
+        // We are expecting the same out schema from the Converters.jar
+        // 1- First the delimiter should be the string "OUTPUT:"
+        // 2- After that we expect a line with the schema property: value
+        int index = outputData.indexOf("OUTPUT:");
+        if (index == -1)
+            throw new Exception("The schema output of the .jar does not conformance with the parserFunction");
+
+        JSONObject data = new JSONObject();
+        for (int i = index + 1; i < outputData.size(); i++) {
+            String[] temp = outputData.get(i).split(": ");
+            String prop = temp[0].trim();
+            String val = temp[temp.length - 1].trim();
+            if (!val.startsWith("[")) {
+                if (val.equals("true") || val.equals("false"))
+                    data.put(prop, Boolean.parseBoolean(val));
+                else {
+                    if (temp.length == 1) {
+                        data.put(prop, "");
+                    } else
+                        data.put(prop, val);
+                }
+            } else {
+                JSONArray arrayData = new JSONArray(val);
+                data.put(prop, arrayData);
+            }
+        }
+        System.out.println(data);
         this.logsOutput.put(data);
     }
 
     private void loggingConvertingResult() throws Exception {
-        String jsonStringified = this.logsOutput.toString(2);
+        String jsonStr = this.logsOutput.toString(2);
         try {
-            FileWriter fw = new FileWriter(Paths.get(this.rootPath, "conversion-logs.json").toString());
-            fw.write(jsonStringified);
+            FileWriter fw = new FileWriter(Paths.get(this.rootPath, this.folderOutputName, "conversion-logs.json").toString());
+            fw.write(jsonStr);
             fw.close();
         } catch (Exception e) {
             throw new Exception("error generating the logs .json " + e.getMessage());
