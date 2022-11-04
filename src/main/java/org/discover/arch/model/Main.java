@@ -10,16 +10,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
-    static String configPath = "/mnt/DATA/00-GSSI/00-WORK/discovery-arch-model/config.json";
+    static String configPath = "/mnt/DATA/00-GSSI/00-WORK/DISCOVERY-ARCH-MODELS/config.json";
     static String rootPath;
     static String[] archivesForSearching;
     static String[] extensionsForSearching;
     static String outputFolderName;
 
     public static void main(String[] args) {
-
         System.out.println("Loading config .....");
         try {
             JSONObject configObject = loadConfig();
