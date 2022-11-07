@@ -4,7 +4,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ArchModelConverter {
@@ -121,7 +122,7 @@ public class ArchModelConverter {
                 Path pathTOJarFile = Paths.get(currentWorkingDir.toString(), "jar", converterModelJarPlugginsMap.get(extension));
                 List<String> args = List.of(new String[]{pathFile, outPathXMI, id + ""});
                 jarExe.executeJar(pathTOJarFile.toString(), args);
-                processingOutput();
+                processingOutput(extension);
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
             }
@@ -129,7 +130,7 @@ public class ArchModelConverter {
         }
     }
 
-    private void processingOutput() throws Exception {
+    private void processingOutput(String ext) throws Exception {
         List<String> outputData = this.jarExe.getOutput().lines().toList();
         // We are expecting the same out schema from the Converters.jar
         // 1- First the delimiter should be the string "OUTPUT:"
@@ -139,6 +140,7 @@ public class ArchModelConverter {
             throw new Exception("The schema output of the .jar does not conformance with the parserFunction");
 
         JSONObject data = new JSONObject();
+        data.put("extension", ext);
         for (int i = index + 1; i < outputData.size(); i++) {
             String[] temp = outputData.get(i).split(": ");
             String prop = temp[0].trim();
@@ -170,6 +172,50 @@ public class ArchModelConverter {
         } catch (Exception e) {
             throw new Exception("error generating the logs .json " + e.getMessage());
         }
+        try {
+            var reports = this.generateReports();
+            var jsonObject = new JSONObject(reports);
+            jsonStr = jsonObject.toString(2);
+            System.out.println(jsonObject);
+            FileWriter fw = new FileWriter(Paths.get(this.rootPath, this.folderOutputName, "reports-logs.json").toString());
+            fw.write(jsonStr);
+            fw.close();
+        } catch (Exception e) {
+            throw new Exception("error generating the reports .json" + e.getMessage());
+        }
 
+    }
+
+    private JSONArray filterOutputResults(Iterable<Object> dataSource, Function<JSONObject, Boolean> fn) {
+        JSONArray dataFiltered = new JSONArray();
+        for (Object el : dataSource) {
+            JSONObject item = (JSONObject) el;
+            if (fn.apply(item))
+                dataFiltered.put(item);
+        }
+        return dataFiltered;
+    }
+
+    private Map<String, HashMap<String, Object>> generateReports() {
+        Map<String, HashMap<String, Object>> reports = new HashMap<>();
+        for (String ext : this.extensions) {
+            reports.put(ext, new HashMap<>());
+            var filteredData = this.filterOutputResults(this.logsOutput, (JSONObject el) -> el.get("extension").equals(ext));
+            reports.get(ext).put("totalFiles", filteredData.length());
+            reports.get(ext).put("filesConverted", this.filterOutputResults(filteredData, (JSONObject el) -> el.get("isSavedTheModel").equals(true)).length());
+            reports.get(ext).put("filesSuccessfullyParsed", this.filterOutputResults(filteredData, (JSONObject el) -> el.get("isParsingSucceeded").equals(true)).length());
+            reports.get(ext).put("filesWithErrors", this.filterOutputResults(filteredData, (JSONObject el) -> el.get("isParsingSucceeded").equals(false)).length());
+        }
+        reports.put("general", new HashMap<>());
+        reports.get("general").put("totalFilesDiscovered", this.logsOutput.length());
+        reports.get("general").put("totalFilesSuccessfullyParsed", this.filterOutputResults(this.logsOutput,
+                (JSONObject el) -> el.get("isParsingSucceeded").equals(true)).length());
+
+        reports.get("general").put("totalFilesConverted", this.filterOutputResults(this.logsOutput,
+                (JSONObject el) -> el.get("isSavedTheModel").equals(true)).length());
+
+        reports.get("general").put("totalFilesWithErrors", this.filterOutputResults(this.logsOutput,
+                (JSONObject el) -> el.get("isParsingSucceeded").equals(false)).length());
+        return reports;
     }
 }
