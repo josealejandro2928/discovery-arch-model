@@ -102,7 +102,7 @@ public class SearchFileTraversal {
 
     }
 
-    static String getExtension(String path) {
+    static public String getExtension(String path) {
         if (!path.contains(".")) return "txt";
         String[] chunksFileString = path.split("\\.");
         return chunksFileString[chunksFileString.length - 1];

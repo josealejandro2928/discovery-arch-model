@@ -37,11 +37,14 @@ public class Config {
         File file = new File(configPath);
         if (!file.exists())
             throw new Exception("A config.json file path must be provided");
-
         String read = String.join("\n", Files.readAllLines(file.toPath()));
         JSONObject data = new JSONObject(read);
         if (!data.has("ecoreRequiredFilesFolder"))
             throw new Exception("The config.json file should have key 'ecoreRequiredFilesFolder'");
+        if (!data.has("rootPath"))
+            throw new Exception("The config.json file should have key 'rootPath'");
+        if (!data.has("outputFolderName"))
+            data.put("outputFolderName", "output-discover");
 
         return data;
     }
