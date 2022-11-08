@@ -2,5 +2,6 @@
   "rootPath":"/mnt/DATA/00-GSSI/00-WORK/EXAMPLE",
   "archivesForSearching": ["models-repo"],
   "extensionsForSearching": ["aadl"],
-  "outputFolderName": "output-processing"
+  "outputFolderName": "output-processing",
+  "ecoreRequiredFilesFolder":"/mnt/DATA/00-GSSI/00-WORK/ecore"
 }

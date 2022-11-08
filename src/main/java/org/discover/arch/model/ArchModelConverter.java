@@ -11,10 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArchModelConverter {
     String rootPath;
     List<String> dataModelFiles = new ArrayList<>();
@@ -96,7 +95,7 @@ public class ArchModelConverter {
         String pathOutput = Paths.get(this.rootPath, this.folderOutputName).toString();
         File file = new File(pathOutput);
         file.mkdir();
-        for (File childFile : file.listFiles()) {
+        for (File childFile : Objects.requireNonNull(file.listFiles())) {
             deleteDirectory(childFile.toPath());
         }
         for (String ext : this.extensions) {
