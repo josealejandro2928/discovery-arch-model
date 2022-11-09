@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="org.osate.standalone.Main" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.osate.standalone.Main" />
+    <module name="DISCOVERY-ARCH-MODELS" />
+    <option name="PROGRAM_PARAMETERS" value="src/main/java/org/osate/standalone/models/ClientServer.aaxl2" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.osate.standalone.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

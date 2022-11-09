@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="org.process.models.xmi.Main" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.process.models.xmi.Main" />
+    <module name="DISCOVERY-ARCH-MODELS" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.process.models.xmi.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -1,4 +1,4 @@
-package org.process.models.xmi.emf;
+package org.process.models.xmi;
 
 import java.nio.file.Paths;
 

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ASCII"?>
+<instance:SystemInstance xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aadl2="http://aadl.info/AADL/2.0" xmlns:instance="http://aadl.info/AADL/2.0/instance" name="ClientServer_impl_Instance" category="system">
+  <componentInstance name="database" category="process">
+    <featureInstance name="conn" direction="in out">
+      <feature xsi:type="aadl2:DataPort" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.1/@ownedDataPort.0"/>
+    </featureInstance>
+    <subcomponent xsi:type="aadl2:ProcessSubcomponent" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedProcessSubcomponent.0"/>
+    <index>0</index>
+    <classifier xsi:type="aadl2:ProcessType" href="../ClientServer.aadl#ClientServer.MySqlDB"/>
+  </componentInstance>
+  <componentInstance name="frontend" category="process">
+    <featureInstance name="http_api_conn" direction="in out">
+      <feature xsi:type="aadl2:DataPort" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.3/@ownedDataPort.0"/>
+    </featureInstance>
+    <subcomponent xsi:type="aadl2:ProcessSubcomponent" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedProcessSubcomponent.1"/>
+    <index>0</index>
+    <classifier xsi:type="aadl2:ProcessType" href="../ClientServer.aadl#ClientServer.WebApp"/>
+  </componentInstance>
+  <componentInstance name="backend" category="process">
+    <featureInstance name="request">
+      <feature xsi:type="aadl2:DataPort" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.5/@ownedDataPort.0"/>
+    </featureInstance>
+    <featureInstance name="response" direction="out">
+      <feature xsi:type="aadl2:DataPort" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.5/@ownedDataPort.1"/>
+    </featureInstance>
+    <featureInstance name="database_conn" direction="in out">
+      <feature xsi:type="aadl2:DataPort" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.5/@ownedDataPort.2"/>
+    </featureInstance>
+    <subcomponent xsi:type="aadl2:ProcessSubcomponent" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedProcessSubcomponent.2"/>
+    <index>0</index>
+    <classifier xsi:type="aadl2:ProcessType" href="../ClientServer.aadl#ClientServer.RestAPI"/>
+  </componentInstance>
+  <connectionInstance name="database.conn -> backend.database_conn" complete="true" kind="portConnection" destination="//@componentInstance.2/@featureInstance.2" source="//@componentInstance.0/@featureInstance.0">
+    <connectionReference context="/" source="//@componentInstance.0/@featureInstance.0" destination="//@componentInstance.2/@featureInstance.2" reverse="true">
+      <connection xsi:type="aadl2:PortConnection" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedPortConnection.0"/>
+    </connectionReference>
+  </connectionInstance>
+  <connectionInstance name="frontend.http_api_conn -> backend.request" complete="true" kind="portConnection" destination="//@componentInstance.2/@featureInstance.0" source="//@componentInstance.1/@featureInstance.0">
+    <connectionReference context="/" source="//@componentInstance.1/@featureInstance.0" destination="//@componentInstance.2/@featureInstance.0">
+      <connection xsi:type="aadl2:PortConnection" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedPortConnection.1"/>
+    </connectionReference>
+  </connectionInstance>
+  <connectionInstance name="backend.response -> frontend.http_api_conn" complete="true" kind="portConnection" destination="//@componentInstance.1/@featureInstance.0" source="//@componentInstance.2/@featureInstance.1">
+    <connectionReference context="/" source="//@componentInstance.2/@featureInstance.1" destination="//@componentInstance.1/@featureInstance.0">
+      <connection xsi:type="aadl2:PortConnection" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedPortConnection.2"/>
+    </connectionReference>
+  </connectionInstance>
+  <connectionInstance name="backend.database_conn -> database.conn" complete="true" kind="portConnection" destination="//@componentInstance.0/@featureInstance.0" source="//@componentInstance.2/@featureInstance.2">
+    <connectionReference context="/" source="//@componentInstance.2/@featureInstance.2" destination="//@componentInstance.0/@featureInstance.0">
+      <connection xsi:type="aadl2:PortConnection" href="../ClientServer.aadl#/0/@ownedPublicSection/@ownedClassifier.7/@ownedPortConnection.0"/>
+    </connectionReference>
+  </connectionInstance>
+  <systemOperationMode name="No Modes"/>
+  <componentImplementation xsi:type="aadl2:SystemImplementation" href="../ClientServer.aadl#ClientServer.ClientServer.impl"/>
+</instance:SystemInstance>
