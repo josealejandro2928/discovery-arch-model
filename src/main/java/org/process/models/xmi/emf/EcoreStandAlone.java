@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.common.util.URI;
 import org.osate.aadl2.util.Aadl2ResourceFactoryImpl;
+import org.osate.aadl2.instance.InstancePackage;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,18 +39,14 @@ public class EcoreStandAlone {
 
     void init(String requiredEcoreDirectoryPath) throws Exception {
         System.out.println("Init ecore standalone");
-        this.resourceSet = new ResourceSetImpl();
-        this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
-                "ecore", new EcoreResourceFactoryImpl());
-        this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
-                "xmi", new XMIResourceFactoryImpl());
-        this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
-                "aaxl2", new Aadl2ResourceFactoryImpl());
-        this.ecorePackage = EcorePackage.eINSTANCE;
+        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("aaxl2", new Aadl2ResourceFactoryImpl());
+        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
+//        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
+        InstancePackage.eINSTANCE.eClass();
+        EcorePackage.eINSTANCE.eClass();
 
+        this.resourceSet = new ResourceSetImpl();
         System.out.println("Loading the required .ecore modules (aadl2.ecore,aadl2_instance.ecore) and registering them");
-        final ExtendedMetaData extendedMetaData = new BasicExtendedMetaData(this.resourceSet.getPackageRegistry());
-        this.resourceSet.getLoadOptions().put(XMLResource.OPTION_EXTENDED_META_DATA, extendedMetaData);
         List<Resource> resources = new ArrayList<>();
         resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2.ecore").toString()), true));
         for (Resource resource : resources) {
@@ -60,8 +57,9 @@ public class EcoreStandAlone {
         }
     }
 
-    private EObject getEObjectFromResource(Resource resource) {
-        assert resource.getContents().size() == 0;
+    private EObject getEObjectFromResource(Resource resource) throws Exception {
+        if (resource.getContents().size() == 0)
+            throw new Exception("There is not content in the resource loaded");
         return resource.getContents().get(0);
     }
 
