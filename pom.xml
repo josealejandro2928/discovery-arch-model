@@ -34,29 +34,37 @@
             <version>2.16.0</version>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.transaction</artifactId>
+            <version>1.9.1.201805140824</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/dependencies/org.eclipse.emf.transaction_1.9.1.201805140824.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.validation</artifactId>
+            <version>1.8.0.202008210805</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/dependencies/org.eclipse.emf.validation_1.8.0.202008210805.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>org.osate</groupId>
-            <artifactId>org.osate.aadl2</artifactId>
+            <artifactId>org.osate</artifactId>
             <version>5.0.0-SNAPSHOT</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/dependencies/osate_core.jar</systemPath>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.eclipse.core</groupId>-->
-<!--            <artifactId>org.eclipse.core.runtime</artifactId>-->
-<!--            <version>3.25.0</version>-->
-<!--            <scope>system</scope>-->
-<!--            <systemPath>${project.basedir}/dependencies/org.eclipse.core.runtime_3.25.0.v20220506-1157.jar</systemPath>-->
-<!--        </dependency>-->
+
         <dependency>
-            <groupId>org.jibx.config.3rdparty.org.eclipse</groupId>
-            <artifactId>org.eclipse.equinox.common</artifactId>
-            <version>3.6.0.v20110523</version>
+            <groupId>org.osate.xtext</groupId>
+            <artifactId>org.osate.xtext.aadl2</artifactId>
+            <version>7.0.0.qualifier</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/dependencies/osate_xtext.jar</systemPath>
         </dependency>
-        <dependency>
-            <groupId>org.jibx.config.3rdparty.org.eclipse</groupId>
-            <artifactId>org.eclipse.jdt.core</artifactId>
-            <version>3.7.0.v_B61</version>
-        </dependency>
+
         <dependency>
             <groupId>org.eclipse.uml2</groupId>
             <artifactId>org.eclipse.uml2.uml</artifactId>
@@ -64,11 +72,13 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/dependencies/org.eclipse.uml2.uml_5.5.0.v20210228-1829.jar</systemPath>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.uml2</groupId>
             <artifactId>org.eclipse.uml2.uml.resources</artifactId>
             <version>3.1.0.v201005031530</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.uml2</groupId>
             <artifactId>org.eclipse.uml2.common</artifactId>
@@ -76,6 +86,7 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/dependencies/org.eclipse.uml2.common_2.5.0.v20210228-1829.jar</systemPath>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.uml2</groupId>
             <artifactId>org.eclipse.uml2.types</artifactId>
@@ -83,6 +94,37 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/dependencies/org.eclipse.uml2.types_2.5.0.v20210228-1829.jar</systemPath>
         </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.xtext</groupId>
+            <artifactId>org.eclipse.xtext</artifactId>
+            <version>2.28.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.edit</artifactId>
+            <version>2.16.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.runtime</artifactId>
+            <version>3.26.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.resources</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>
