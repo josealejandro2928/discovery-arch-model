@@ -8,7 +8,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.common.util.URI;
-import org.osate.standalone.LoadXMIModel;
+import org.osate.standalone.model.LoadXMIModel;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
-    static String configPath = "/mnt/DATA/00-GSSI/00-WORK/DISCOVERY-ARCH-MODELS/config.json";
+    static String configPath = "./config.json";
     static String rootPath;
     static String[] archivesForSearching;
     static String[] extensionsForSearching;
@@ -47,7 +47,7 @@ public class Main {
             System.out.println("*********************STAGE 1********************");
             List<String> filesFound = fileDiscover.searchForFiles(true, false);
             System.out.println("SCANNING RESULTS: " + fileDiscover.scanningResult);
-            archModelConverter.setDataModelFiles(fileDiscover.dataFilesFound);
+            archModelConverter.setDataModelFiles(filesFound);
             archModelConverter.initProcessing();
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
@@ -67,7 +67,7 @@ public class Main {
         if (!data.has("archivesForSearching"))
             throw new Exception("The config.json file should have key 'archivesForSearching'");
         if (!data.has("outputFolderName"))
-            data.put("outputFolderName", "output-discover");
+            data.put("outputFolderName", "output-processing");
         if (!data.has("extensionsForSearching"))
             data.put("extensionsForSearching", new String[]{"aadl"});
 

@@ -1,0 +1,46 @@
+package ClientServer
+public
+	system ClientServer
+	end ClientServer;
+	
+	process MySqlDB
+		features
+			conn: in out data port;
+	end MySqlDB;
+	
+	process implementation MySqlDB.impl
+	end MySqlDB.impl;
+	
+	process WebApp
+		features
+			http_api_conn: in out data port;
+	end WebApp;
+
+	process implementation WebApp.impl
+	end WebApp.impl;
+	
+	process RestAPI
+		features
+			request: in data port;
+			response: out data port;
+			database_conn: in out data port;
+	end RestAPI;
+	
+	process implementation RestAPI.impl
+	end RestAPI.impl;
+	
+	
+	system implementation ClientServer.impl
+		subcomponents
+			database: process MySqlDB;
+			frontend: process WebApp;
+			backend: process RestAPI;
+			
+		connections
+			query_conn: port backend.database_conn <-> database.conn;
+			client_req: port frontend.http_api_conn -> backend.request;
+			client_res: port backend.response -> frontend.http_api_conn;
+			
+	end ClientServer.impl;
+	
+end ClientServer;

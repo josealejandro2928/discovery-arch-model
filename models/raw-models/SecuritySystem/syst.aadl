@@ -1,0 +1,68 @@
+package syst
+public
+	system SecuritySystem
+	end SecuritySystem;
+	
+	system implementation SecuritySystem.with_devices
+		subcomponents
+			this_motion_sensor: device MotionSensor;
+			this_magnetic_alarm_sensor: device  MagneticAlarmSensor;
+			this_camera: device Camera;
+			this_alarm_unit: device AlarmUnit;
+			this_controller: process Controller;
+		
+		connections
+			motion_conn: port this_motion_sensor.motion_detected -> this_controller.motion_in;
+			magnetic_conn: port this_magnetic_alarm_sensor.alarm_set_off -> this_controller.magnetic_in;
+			camera_data_conn: port this_camera.video_stream -> this_controller.video_from_camera;
+			camera_conn: port this_controller.camera_out -> this_camera.camera_on_off;
+			alarm_unit_conn: port this_controller.alarm_out -> this_alarm_unit.alarm_on_off;
+			
+	end SecuritySystem.with_devices;
+	
+	process Controller
+		features
+			motion_in: in event port;
+			magnetic_in: in event port;
+			camera_out: out event port;
+			alarm_out: out event port;
+			video_from_camera: in data port;
+	end Controller;
+
+	process implementation Controller.with_threads
+	end Controller.with_threads;
+
+	device MotionSensor
+		features
+			motion_detected: out event port; 
+	end MotionSensor;
+	
+	device implementation MotionSensor.impl
+	end MotionSensor.impl;
+	
+	device MagneticAlarmSensor
+		features
+			alarm_set_off: out event port;
+	end MagneticAlarmSensor;
+	
+	device implementation MagneticAlarmSensor.impl
+	end MagneticAlarmSensor.impl;
+	
+	device Camera
+		features
+			camera_on_off: in event port;
+			video_stream:  out data port;
+	end Camera;
+	
+	device implementation Camera.impl
+	end Camera.impl;
+	
+	device AlarmUnit
+		features
+			alarm_on_off: in event port;
+	end AlarmUnit;
+	
+	device implementation AlarmUnit.impl
+	end AlarmUnit.impl;
+
+end syst;

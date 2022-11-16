@@ -1,4 +1,4 @@
-package org.osate.standalone;
+package org.osate.standalone.model;
 
 import java.io.IOException;
 

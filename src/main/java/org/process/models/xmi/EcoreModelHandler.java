@@ -71,11 +71,11 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(EcoreStandAlone obj) throws Exception {
+    void processModels(EcoreStandAlone ecoreStandAlone) throws Exception {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         for (String modelUri : this.uriModels) {
             try {
-                Resource resource = obj.getModelByURI(modelUri);
+                Resource resource = ecoreStandAlone.getModelByURI(modelUri);
                 this.addModel(resource);
                 DataRepresentationFeature data = getDataFromResource(resource);
                 System.out.println("------------------------------------------------------------------");

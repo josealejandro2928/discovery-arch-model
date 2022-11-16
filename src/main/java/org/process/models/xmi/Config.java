@@ -9,9 +9,18 @@ import java.util.Map;
 
 public class Config {
     static private Config INSTANCE = null;
+    public String rootPath;
+    public String outputFolderName;
+    public String ecoreRequiredFilesFolder;
     public Map configObj = null;
 
-    private Config() {
+    private Config(Map data) throws Exception {
+        if (data == null)
+            throw new Exception("In order to load a config a Map should be passed into the constructor");
+        this.rootPath = (String) data.get("rootPath");
+        this.outputFolderName = (String) data.get("outputFolderName");
+        this.ecoreRequiredFilesFolder = (String) data.get("ecoreRequiredFilesFolder");
+        this.configObj = data;
     }
 
     static Config getInstance(String configPath) {
@@ -19,8 +28,7 @@ public class Config {
             System.out.println("Loading config .....");
             try {
                 JSONObject data = loadConfig(configPath);
-                INSTANCE = new Config();
-                INSTANCE.configObj = data.toMap();
+                INSTANCE = new Config(data.toMap());
                 System.out.println("Config parameters: " + INSTANCE.configObj);
                 return INSTANCE;
             } catch (Exception e) {
@@ -44,8 +52,7 @@ public class Config {
         if (!data.has("rootPath"))
             throw new Exception("The config.json file should have key 'rootPath'");
         if (!data.has("outputFolderName"))
-            data.put("outputFolderName", "output-discover");
-
+            data.put("outputFolderName", "output-processing");
         return data;
     }
 }

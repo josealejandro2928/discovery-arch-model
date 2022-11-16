@@ -1,10 +1,8 @@
-package org.osate.standalone;
+package org.osate.standalone.model;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.osate.aadl2.impl.SystemImplementationImpl;
-import org.osate.aadl2.instance.impl.ComponentInstanceImpl;
 
 public class Main {
     static String URI_XMI_MODEL = "";
