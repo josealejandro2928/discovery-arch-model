@@ -34,7 +34,7 @@ The class ArchModelConverter takes the list and gets the RawModelLoader Instance
 map to the extension for the conversion. The subsequent new converted model is stored 
 in the disk in the path configured by the user. Bellow some examples
 ```java
-   ArchModelConverter(String rootPath) throws Exception {
+ArchModelConverter(String rootPath) throws Exception {
     File file = new File(rootPath);
     if (!file.exists())
         throw new Exception("The rootPath: " + rootPath + "does not exists");
@@ -44,29 +44,29 @@ in the disk in the path configured by the user. Bellow some examples
 ```
 ```java
 private void convertModels(boolean verbose) throws Exception {
-        int id = 0;
-        String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
-        for (String pathFile : this.dataModelFiles) {
-            String extension = SearchFileTraversal.getExtension(pathFile);
-            if (this.converterModelClassMap.containsKey(extension)) {
-                this.convertModelsUsingClass(pathFile, outPathXMI, id + "", verbose);
-            } else {
-                System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
-            }
-            id++;
+    int id = 0;
+    String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
+    for (String pathFile : this.dataModelFiles) {
+        String extension = SearchFileTraversal.getExtension(pathFile);
+        if (this.converterModelClassMap.containsKey(extension)) {
+            this.convertModelsUsingClass(pathFile, outPathXMI, id + "", verbose);
+        } else {
+            System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
         }
+        id++;
+    }
 }
 
 private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, 
         boolean verbose) throws Exception {
-       String extension = SearchFileTraversal.getExtension(pathFile);
-       RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
-       RawModelLoader.OutputLoadedModelSchema data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
-       Map<String, Object> dataOutMap = data.toMap();
-       if (verbose)
-           System.out.println(dataOutMap);
-       dataOutMap.put("extension", extension);
-       this.logsOutput.put(new JSONObject(dataOutMap));
+    String extension = SearchFileTraversal.getExtension(pathFile);
+    RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
+    RawModelLoader.OutputLoadedModelSchema data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
+    Map<String, Object> dataOutMap = data.toMap();
+    if (verbose)
+        System.out.println(dataOutMap);
+    dataOutMap.put("extension", extension);
+    this.logsOutput.put(new JSONObject(dataOutMap));
 }
 ```
 
@@ -86,7 +86,7 @@ The classes are:
 | LoadAADLModel          | Load and convert arch models .aadl into XMI instance model .aaxl2. It uses the OSATE api |
 | CrossReferenceResolver | Resolve the cross reference models in .aadl files.                                       |
 
-
+<img height="600" src="./images/image1.png"/>
 
 
 
