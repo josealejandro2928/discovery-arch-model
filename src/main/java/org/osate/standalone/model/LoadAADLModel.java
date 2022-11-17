@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class LoadAADLModel {
+public class LoadAADLModel implements AADLModelLoader {
     private static LoadAADLModel INSTANCE = null;
     Injector injector;
     XtextResourceSet rs;
@@ -45,8 +45,8 @@ public class LoadAADLModel {
         return INSTANCE;
     }
 
-    public OutputSchema loadAddlModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
-        OutputSchema outputSchema = new OutputSchema();
+    public OutputLoadedModelSchema loadAddlModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
+        OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
         String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
@@ -111,7 +111,7 @@ public class LoadAADLModel {
         }
     }
 
-    public List<String> validateModel(Resource[] resources) {
+    private List<String> validateModel(Resource[] resources) {
         List<Issue> issues = new ArrayList<>();
         List<String> errors = new ArrayList<>();
         for (final Resource resource : resources) {
@@ -131,7 +131,7 @@ public class LoadAADLModel {
         return errors;
     }
 
-    public static String saveModelToXMI(SystemInstance systemInstance, XtextResourceSet rs, String pathXMLFile, String parentName, String id)
+    private String saveModelToXMI(SystemInstance systemInstance, XtextResourceSet rs, String pathXMLFile, String parentName, String id)
             throws Exception {
         String instanceName = pathXMLFile;
         if (id != null) {
@@ -147,32 +147,4 @@ public class LoadAADLModel {
         return instanceName;
     }
 
-    public class OutputSchema {
-        List<String> errors;
-        String pathXMLFile;
-        String pathAADLFile;
-        String modelName;
-        boolean isParsingSucceeded;
-        boolean isSavedTheModel;
-
-        OutputSchema() {
-            this.errors = new ArrayList<String>();
-            this.pathAADLFile = "";
-            this.pathXMLFile = "";
-            this.modelName = "";
-            this.isParsingSucceeded = true;
-            this.isSavedTheModel = false;
-        }
-
-        @Override
-        public String toString() {
-            String src = "modelName: " + this.modelName + "\n" +
-                    "isParsingSucceeded: " + this.isParsingSucceeded + "\n" +
-                    "isSavedTheModel: " + this.isSavedTheModel + "\n" +
-                    "pathAADLFile: " + this.pathAADLFile + "\n" +
-                    "pathXMLFile: " + this.pathXMLFile + "\n" +
-                    "errors: " + this.errors + "\n";
-            return src;
-        }
-    }
 }

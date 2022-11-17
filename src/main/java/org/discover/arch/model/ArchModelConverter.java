@@ -2,6 +2,8 @@ package org.discover.arch.model;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.osate.standalone.model.AADLModelLoader;
+import org.osate.standalone.model.LoadAADLModel;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
 
@@ -20,6 +23,7 @@ public class ArchModelConverter {
     List<String> extensions = new ArrayList<>();
     String folderOutputName;
     HashMap<String, String> converterModelJarPlugginsMap = new HashMap<>();
+    HashMap<String, Object> converterModelClassMap = new HashMap<>();
     JarExecutor jarExe = new JarExecutor();
     JSONArray logsOutput = new JSONArray();
 
@@ -29,6 +33,7 @@ public class ArchModelConverter {
             throw new Exception("The rootPath: " + rootPath + "does not exists");
         this.rootPath = rootPath;
         converterModelJarPlugginsMap.put("aadl", "ConvertAADLToXMI.jar");
+        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
     }
 
     public ArchModelConverter setDataModelFiles(List<String> data) {
@@ -71,8 +76,11 @@ public class ArchModelConverter {
         System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
         System.out.println("*********************STAGE 2********************");
         System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
-        this.convertModels();
-        System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED");
+        long startTime = System.nanoTime();
+        this.convertModels(true);
+        long endTime = System.nanoTime();
+        double elapsedTime = (double) (endTime - startTime) / 1000000000;
+        System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED: " + new DecimalFormat("0.000").format(elapsedTime) + "s");
         System.out.println("LOGGING THE CONVERSION FILE .json...");
         this.loggingConvertingResult();
         System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
@@ -111,17 +119,13 @@ public class ArchModelConverter {
                 .forEach(File::delete);
     }
 
-    private void convertModels() throws Exception {
+    private void convertModels(boolean verbose) throws Exception {
         int id = 0;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
-            if (this.converterModelJarPlugginsMap.containsKey(extension)) {
-                Path currentWorkingDir = Paths.get("").toAbsolutePath();
-                Path pathTOJarFile = Paths.get(currentWorkingDir.toString(), "jar", converterModelJarPlugginsMap.get(extension));
-                List<String> args = List.of(new String[]{pathFile, outPathXMI, id + ""});
-                jarExe.executeJar(pathTOJarFile.toString(), args);
-                processingOutput(extension);
+            if (this.converterModelClassMap.containsKey(extension)) {
+                this.convertModelsUsingClass(pathFile, outPathXMI, id + "", verbose);
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
             }
@@ -129,7 +133,23 @@ public class ArchModelConverter {
         }
     }
 
-    private void processingOutput(String ext) throws Exception {
+    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, boolean verbose) throws Exception {
+        String extension = SearchFileTraversal.getExtension(pathFile);
+        AADLModelLoader modelLoader = (AADLModelLoader) this.converterModelClassMap.get(extension);
+        AADLModelLoader.OutputLoadedModelSchema data = modelLoader.loadAddlModel(pathFile, outPathXMI, id, false);
+        Map<String, Object> dataOutMap = data.toMap();
+        if (verbose)
+            System.out.println(dataOutMap);
+        dataOutMap.put("extension", extension);
+        this.logsOutput.put(new JSONObject(dataOutMap));
+    }
+
+    private void convertModelsUsingExternalJarFiles(String pathFile, String outPathXMI, String id) throws Exception {
+        String extension = SearchFileTraversal.getExtension(pathFile);
+        Path currentWorkingDir = Paths.get("").toAbsolutePath();
+        Path pathTOJarFile = Paths.get(currentWorkingDir.toString(), "jar", converterModelJarPlugginsMap.get(extension));
+        List<String> args = List.of(new String[]{pathFile, outPathXMI, id + ""});
+        jarExe.executeJar(pathTOJarFile.toString(), args);
         List<String> outputData = this.jarExe.getOutput().lines().toList();
         // We are expecting the same out schema from the Converters.jar
         // 1- First the delimiter should be the string "OUTPUT:"
@@ -139,7 +159,7 @@ public class ArchModelConverter {
             throw new Exception("The schema output of the .jar does not conformance with the parserFunction");
 
         JSONObject data = new JSONObject();
-        data.put("extension", ext);
+        data.put("extension", extension);
         for (int i = index + 1; i < outputData.size(); i++) {
             String[] temp = outputData.get(i).split(": ");
             String prop = temp[0].trim();
