@@ -72,7 +72,7 @@ public class SearchFileTraversal {
         System.out.println("SCANNING COMPLETED");
         if (storeOnRootPath) {
             try {
-                this.logfilePath = Paths.get(this.rootPath, this.folderOutputName, "files-founded.txt").toString();
+                this.logfilePath = Paths.get(this.rootPath, this.folderOutputName, "files-found.txt").toString();
                 FileWriter myWriter = new FileWriter(this.logfilePath);
                 myWriter.write(String.join("\n", this.dataFilesFound));
                 if (this.dataFilesError.size() > 0) {
