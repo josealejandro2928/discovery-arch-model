@@ -9,15 +9,21 @@ The main objective of this project is to **convert all the previous models found
 to use **MDE techniques for future preprocessing**.
 
 The project contains three packages:
-1. discover.arch.model
-2. osate.standalone.model
-3. process.model.xmi
+1. **discover.arch.model**
+2. **osate.standalone.model**
+3. **process.model.xmi**
 
 ### discover.arch.model: ### 
 It contains the classes in charge of processing the path for looking 
 for aadl files and the conversion to XMI format. The first step is the search; here, 
 we perform a BFS to find the raw models. When the discovery is made, all the paths to 
 models are stored in memory and in a .txt file named "files-found.txt".
+
+| Classes             | Description                                                                                                                |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------|
+| SearchFileTraversal | This class perform the search for arch models given the extensions and the archive that contains the models.               |
+| ArchModelConverter  | From a list of path to models, prepare the output directories and convert every model into a XMI model to a xmi directory. |
+
 ```text
 ./models/raw-models/SecuritySystem/syst.aadl
 ./models/raw-models/SimpleWebServer/ClientServer.aadl
@@ -71,7 +77,8 @@ private void convertModelsUsingClass(String pathFile, String outPathXMI, String 
 ```
 
 The BFS algorithms for search in the file system
-<img alt="image" height="500" src="https://user-images.githubusercontent.com/37028825/198348777-0ddfffc5-78a8-457e-8473-c0b9d427a7e9.png" title="BFS algorithm for searching models"/>
+
+<img alt="image" height="500" src="./images/image1.png" title="BFS algorithm for searching models"/>
 
 ### osate.standalone.model: ###
 This package contains the classes in charge of parsing and loading .addl and XMI 
@@ -86,34 +93,69 @@ The classes are:
 | LoadAADLModel          | Load and convert arch models .aadl into XMI instance model .aaxl2. It uses the OSATE api |
 | CrossReferenceResolver | Resolve the cross reference models in .aadl files.                                       |
 
-<img height="600" src="./images/image1.png"/>
+<img height="750" src="./images/image2.png"/>
+
+### process.model.xmi: ###
+This package takes the path where the XMI processed models are and load the .ecore models from them.
+Once we get them, we can perform metrics and some computation and transformation over the models
+to collect information about them.
+
+| Classes                   | Description                                                                                                                                                                                  |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Config                    | This class is in charge of loading the required config.json file for getting the path and more configuration vars.                                                                           |
+| EcoreModelHandler         | This class is get the list of XMI models from the rootpath stored in config.json and discover all of them. After it get the ecore representation using an instance of class EcoreStandAlone. |
+| EcoreStandAlone           | This class return the Ecore models from a path to a XMI model                                                                                                                                |
+| DataRepresentationFeature | This class is used for extract feature from analysing the models. Right now it gets the #component ,#connectors and the size of an arch model.                                               |
+
+Main class of the package
+
+<img height="400" src="./images/image3.png"/>
+
+
+## Run Configurations ##
+The project contains the following run configurations
+
+| Run Configuration                        | Description                                                                                                                                                                          |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| org.discover.arch.model.Main             | This load the configuration from config.json and perform the discovering architectural models and the conversion into XMI.                                                           |
+| org.process.models.xmi.Main              | This get the XMI models and get the ECORE representation of every of them and perform some metric computation.                                                                       |
+| org.osate.standalone.model.LoadAADLModel | This is a run configuration to test the conversion of an .aadl arch model into and XMI model. This class uses the OSATE api and EMF API and relay in System Implementations of OSATE |
+| org.osate.standalone.model.LoadXMIModel  | Get the ECORE representation of an XMI model previously converted from an arch model.                                                                                                |
 
 
 
-#### Part of the converter class
-![image](https://user-images.githubusercontent.com/37028825/198349018-8883a696-76d7-4b65-85f3-daca0e0deba3.png)
-
-
-### In order to run correctly the Main class a path to a config.json has to be created
+### In order to run correctly the above a config.json has to be created
 You must create the config.json following this schema, and pass to the static variable the paths
 ```json
 {
-  "rootPath":"/mnt/DATA/00-GSSI/00-WORK",
-  "archivesForSearching": ["test-repo"],
-  "extensionsForSearching": ["aadl","pdf"],
-  "outputFolderName": "output-discover"
+  "rootPath":"./models",
+  "archivesForSearching": ["raw-models"],
+  "extensionsForSearching": ["aadl"],
+  "outputFolderName": "output-processing",
+  "ecoreRequiredFilesFolder":"./ecore"
 }
 ```
 ```java
 public class Main {
-    static String configPath = "/mnt/DATA/00-GSSI/00-WORK/discovery-arch-model/config.json";
+    static String configPath = "./config.json";
     static String rootPath;
     ...
 ```
 
-|Name |Description|
-|-----|--------|
-|rootPath| THe rootPath or the global uri in the filesystem where we want to store, all the folder of models and all the logs files|
-|archivesForSearching  |An array of folders where we have stored the files we want to process|
-|extensionsForSearching  |An array of extension files that we aim to look for and we aim to convert(The models, ej: addl,ecore, emf)|
-|outputFolderName  |The name of the folder to put the results |
+In the project an example folder with 6 .aadl models is provided. Once the process of discovering and conversion
+is done in the context of the rootPath a directory "output-processing" is created with the resulting 
+computation.
+
+
+| Name                     | Description                                                                                                              |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| rootPath                 | THe rootPath or the global uri in the filesystem where we want to store, all the folder of models and all the logs files |
+| archivesForSearching     | An array of folders where we have stored the files we want to process                                                    |
+| extensionsForSearching   | An array of extension files that we aim to look for and we aim to convert(The models, ej: addl,ecore, emf)               |
+| outputFolderName         | The name of the folder to put the results                                                                                |
+ | ecoreRequiredFilesFolder | Contain the path to the ecore folder where a required .ecore models are loaded                                           | 
+
+## Gallery
+<img width="100%" src="./images/image4.png"/>
+
+<img width="100%" src="./images/image5.png"/>
