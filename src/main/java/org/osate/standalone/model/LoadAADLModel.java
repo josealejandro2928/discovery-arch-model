@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class LoadAADLModel implements AADLModelLoader {
+public class LoadAADLModel implements RawModelLoader {
     private static LoadAADLModel INSTANCE = null;
     Injector injector;
     XtextResourceSet rs;
@@ -45,7 +45,7 @@ public class LoadAADLModel implements AADLModelLoader {
         return INSTANCE;
     }
 
-    public OutputLoadedModelSchema loadAddlModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
+    public OutputLoadedModelSchema loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
