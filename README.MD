@@ -93,7 +93,7 @@ The classes are:
 | LoadAADLModel          | Load and convert arch models .aadl into XMI instance model .aaxl2. It uses the OSATE api |
 | CrossReferenceResolver | Resolve the cross reference models in .aadl files.                                       |
 
-<img height="750" src="./images/image2.png"/>
+<img width="90%" src="./images/image2.png"/>
 
 ### process.model.xmi: ###
 This package takes the path where the XMI processed models are and load the .ecore models from them.
