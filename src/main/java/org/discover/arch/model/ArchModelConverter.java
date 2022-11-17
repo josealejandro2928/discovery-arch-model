@@ -2,7 +2,7 @@ package org.discover.arch.model;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.osate.standalone.model.AADLModelLoader;
+import org.osate.standalone.model.RawModelLoader;
 import org.osate.standalone.model.LoadAADLModel;
 
 import java.io.File;
@@ -135,8 +135,8 @@ public class ArchModelConverter {
 
     private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, boolean verbose) throws Exception {
         String extension = SearchFileTraversal.getExtension(pathFile);
-        AADLModelLoader modelLoader = (AADLModelLoader) this.converterModelClassMap.get(extension);
-        AADLModelLoader.OutputLoadedModelSchema data = modelLoader.loadAddlModel(pathFile, outPathXMI, id, false);
+        RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
+        RawModelLoader.OutputLoadedModelSchema data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
         Map<String, Object> dataOutMap = data.toMap();
         if (verbose)
             System.out.println(dataOutMap);

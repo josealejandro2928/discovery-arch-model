@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface AADLModelLoader {
-    public OutputLoadedModelSchema loadAddlModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
+public interface RawModelLoader {
+    public OutputLoadedModelSchema loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
 
     public class OutputLoadedModelSchema {
         List<String> errors;
@@ -17,7 +17,7 @@ public interface AADLModelLoader {
         boolean isSavedTheModel;
 
         OutputLoadedModelSchema() {
-            this.errors = new ArrayList<String>();
+            this.errors = new ArrayList<>();
             this.pathAADLFile = "";
             this.pathXMLFile = "";
             this.modelName = "";
@@ -27,13 +27,12 @@ public interface AADLModelLoader {
 
         @Override
         public String toString() {
-            String src = "modelName: " + this.modelName + "\n" +
+            return "modelName: " + this.modelName + "\n" +
                     "isParsingSucceeded: " + this.isParsingSucceeded + "\n" +
                     "isSavedTheModel: " + this.isSavedTheModel + "\n" +
                     "pathAADLFile: " + this.pathAADLFile + "\n" +
                     "pathXMLFile: " + this.pathXMLFile + "\n" +
                     "errors: " + this.errors + "\n";
-            return src;
         }
 
         public Map<String, Object> toMap() {
