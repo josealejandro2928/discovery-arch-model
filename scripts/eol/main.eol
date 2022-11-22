@@ -1,0 +1,16 @@
+ModelImpl.println();
+var dataOutput = new Map;
+
+getSizeModel();
+return dataOutput;
+
+///////////////// OPERATIONS GO HERE //////////////
+operation getSizeModel() {
+	var systemName = ModelImpl!SystemInstance.all().first().name;
+    var components = ModelImpl!ComponentInstance.all().size();
+    var connectors = ModelImpl!ConnectionInstance.all().size();
+    dataOutput.put("systemName",systemName);
+    dataOutput.put("components",components);
+    dataOutput.put("connectors",connectors);
+}
+//////////////////////////////////////////////////
