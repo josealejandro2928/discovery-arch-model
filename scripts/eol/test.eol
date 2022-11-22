@@ -1,0 +1,6 @@
+for (t in TreeModel!Tree.all) {
+	t.label.println();
+}/////////////////////////////////
+
+var instances = "Total instances are: " + TreeModel!Tree.all().size();
+return instances;

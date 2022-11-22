@@ -5,7 +5,7 @@ public
 	
 	process MySqlDB
 		features
-			conn: in out data port;
+			conn: in data port;
 	end MySqlDB;
 	
 	process implementation MySqlDB.impl
@@ -13,7 +13,7 @@ public
 	
 	process WebApp
 		features
-			http_api_conn: in out data port;
+			http_api_conn: out data port;
 	end WebApp;
 
 	process implementation WebApp.impl
@@ -22,8 +22,7 @@ public
 	process RestAPI
 		features
 			request: in data port;
-			response: out data port;
-			database_conn: in out data port;
+			database_conn: out data port;
 	end RestAPI;
 	
 	process implementation RestAPI.impl
@@ -37,9 +36,8 @@ public
 			backend: process RestAPI;
 			
 		connections
-			query_conn: port backend.database_conn <-> database.conn;
-			client_req: port frontend.http_api_conn -> backend.request;
-			client_res: port backend.response -> frontend.http_api_conn;
+			query_conn: port backend.database_conn  ->  database.conn;
+			client_conn: port frontend.http_api_conn -> backend.request;
 			
 	end ClientServer.impl;
 	

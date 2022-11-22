@@ -2,12 +2,14 @@ package org.process.models.xmi;
 
 import org.discover.arch.model.SearchFileTraversal;
 import org.eclipse.emf.common.util.TreeIterator;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.osate.aadl2.impl.SystemImplementationImpl;
 import org.osate.aadl2.instance.impl.ComponentInstanceImpl;
 import org.osate.aadl2.instance.impl.ConnectionInstanceImpl;
 import org.osate.aadl2.instance.impl.SystemInstanceImpl;
+import org.osate.aadl2.util.Aadl2ResourceImpl;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -70,6 +72,30 @@ public class EcoreModelHandler {
                     }
                 });
     }
+
+    void processModels(EcoreStandAlone ecoreStandAlone, EolRunner eolRunner) throws Exception {
+        System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
+        for (String modelUri : this.uriModels) {
+            try {
+                Resource resource = ecoreStandAlone.getModelByURI(modelUri);
+                this.addModel(resource);
+                try {
+                    System.out.println("------------------------------------------------------------------");
+                    System.out.println("URI: " + modelUri);
+                    Object data = eolRunner.run("main", modelUri);
+                    System.out.println(data);
+                    System.out.println("------------------------------------------------------------------");
+                } catch (Exception e) {
+                    System.out.println("Error running eol: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                System.out.println("Error getting the models from URI: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+        }
+    }
+
 
     void processModels(EcoreStandAlone ecoreStandAlone) throws Exception {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
