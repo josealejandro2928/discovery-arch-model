@@ -27,12 +27,22 @@ public class ArchModelConverter {
     JarExecutor jarExe = new JarExecutor();
     JSONArray logsOutput = new JSONArray();
 
-    ArchModelConverter(String rootPath) throws Exception {
-        File file = new File(rootPath);
-        if (!file.exists())
-            throw new Exception("The rootPath: " + rootPath + "does not exists");
+    ArchModelConverter(String rootPath) {
         this.rootPath = rootPath;
-        converterModelJarPlugginsMap.put("aadl", "ConvertAADLToXMI.jar");
+        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
+    }
+
+    ArchModelConverter(String rootPath, String[] extensions, String outputFolderName) {
+        this.rootPath = rootPath;
+        this.extensions = Arrays.asList(extensions);
+        this.folderOutputName = outputFolderName;
+        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
+    }
+
+    ArchModelConverter(Config config) {
+        this.rootPath = config.getRootPath();
+        this.extensions = config.getExtensionsForSearching();
+        this.folderOutputName = config.getOutputFolderName();
         converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
     }
 
@@ -99,26 +109,6 @@ public class ArchModelConverter {
         }
     }
 
-    public void createFolderOutput() throws Exception {
-        String pathOutput = Paths.get(this.rootPath, this.folderOutputName).toString();
-        File file = new File(pathOutput);
-        file.mkdir();
-        for (File childFile : Objects.requireNonNull(file.listFiles())) {
-            deleteDirectory(childFile.toPath());
-        }
-        for (String ext : this.extensions) {
-            new File(Paths.get(file.getPath(), ext).toString()).mkdir();
-        }
-        new File(Paths.get(file.getPath(), "xmi").toString()).mkdir();
-    }
-
-    static void deleteDirectory(Path path) throws IOException {
-        Files.walk(path)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-    }
-
     private void convertModels(boolean verbose) throws Exception {
         int id = 0;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
@@ -141,45 +131,8 @@ public class ArchModelConverter {
         if (verbose)
             System.out.println(dataOutMap);
         dataOutMap.put("extension", extension);
+        dataOutMap.put("id", id);
         this.logsOutput.put(new JSONObject(dataOutMap));
-    }
-
-    private void convertModelsUsingExternalJarFiles(String pathFile, String outPathXMI, String id) throws Exception {
-        String extension = SearchFileTraversal.getExtension(pathFile);
-        Path currentWorkingDir = Paths.get("").toAbsolutePath();
-        Path pathTOJarFile = Paths.get(currentWorkingDir.toString(), "jar", converterModelJarPlugginsMap.get(extension));
-        List<String> args = List.of(new String[]{pathFile, outPathXMI, id + ""});
-        jarExe.executeJar(pathTOJarFile.toString(), args);
-        List<String> outputData = this.jarExe.getOutput().lines().toList();
-        // We are expecting the same out schema from the Converters.jar
-        // 1- First the delimiter should be the string "OUTPUT:"
-        // 2- After that we expect a line with the schema property: value
-        int index = outputData.indexOf("OUTPUT:");
-        if (index == -1)
-            throw new Exception("The schema output of the .jar does not conformance with the parserFunction");
-
-        JSONObject data = new JSONObject();
-        data.put("extension", extension);
-        for (int i = index + 1; i < outputData.size(); i++) {
-            String[] temp = outputData.get(i).split(": ");
-            String prop = temp[0].trim();
-            String val = temp[temp.length - 1].trim();
-            if (!val.startsWith("[")) {
-                if (val.equals("true") || val.equals("false"))
-                    data.put(prop, Boolean.parseBoolean(val));
-                else {
-                    if (temp.length == 1) {
-                        data.put(prop, "");
-                    } else
-                        data.put(prop, val);
-                }
-            } else {
-                JSONArray arrayData = new JSONArray(val);
-                data.put(prop, arrayData);
-            }
-        }
-        System.out.println(data);
-        this.logsOutput.put(data);
     }
 
     private void loggingConvertingResult() throws Exception {

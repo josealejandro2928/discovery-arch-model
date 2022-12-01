@@ -17,19 +17,18 @@ public class SearchFileTraversal {
     List<String> dataFilesError = new ArrayList<>();
     HashMap<String, String> scanningResult = new HashMap<>();
 
-    SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts) throws Exception {
-        File file = new File(rootPath);
-        if (!file.exists())
-            throw new Exception("The rootPath: " + rootPath + " does not exists");
+    SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
         this.rootPath = rootPath;
-        for (String p : searchPaths) {
-            file = new File(p);
-            if (!file.exists()) {
-                throw new Exception("The path: " + p + " does not exists");
-            }
-        }
         this.searchPaths = Arrays.asList(searchPaths);
         this.extensions = Arrays.asList(exts);
+        this.folderOutputName = folderOutputName;
+    }
+
+    SearchFileTraversal(Config configObj) {
+        this.rootPath = configObj.getRootPath();
+        this.searchPaths = configObj.getArchivesForSearching();
+        this.extensions = configObj.getExtensionsForSearching();
+        this.folderOutputName = configObj.getOutputFolderName();
     }
 
     public SearchFileTraversal setFolderOutPutName(String outFolder) {
@@ -106,5 +105,10 @@ public class SearchFileTraversal {
         if (!path.contains(".")) return "txt";
         String[] chunksFileString = path.split("\\.");
         return chunksFileString[chunksFileString.length - 1];
+    }
+
+    public SearchFileTraversal setSearchPaths(List<String> searchPaths) {
+        this.searchPaths = searchPaths;
+        return this;
     }
 }

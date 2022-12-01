@@ -1,5 +1,7 @@
 package org.process.models.xmi;
 
+import org.discover.arch.model.Config;
+
 import java.nio.file.Paths;
 
 public class Main {
@@ -14,8 +16,9 @@ public class Main {
             EolRunner eolRunner = EolRunner.getInstance();
             if (config == null)
                 throw new Exception("The config object cannot be null");
-            ecoreStandAlone.init(config.ecoreRequiredFilesFolder);
-            ecoreModelHandler.setRootPathFolder(Paths.get(config.rootPath, config.outputFolderName, "xmi").toString());
+            String rootModelsXMIFolderPath = Paths.get(config.getRootPath(), config.getOutputFolderName(), "xmi").toString();
+            ecoreStandAlone.init(config.getEcoreRequiredFilesFolder());
+            ecoreModelHandler.setRootPathFolder(rootModelsXMIFolderPath);
             ecoreModelHandler.discoverModelFromPath();
             ecoreModelHandler.processModels(ecoreStandAlone, eolRunner);
         } catch (Exception e) {

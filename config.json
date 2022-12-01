@@ -1,7 +1,12 @@
 {
-  "rootPath":"./models",
-  "archivesForSearching": ["raw-models"],
-  "extensionsForSearching": ["aadl"],
+  "rootPath": "./models",
+  "archivesForSearching": [
+    "./models/raw-models"
+  ],
+  "externalResources": [],
+  "extensionsForSearching": [
+    "aadl"
+  ],
   "outputFolderName": "output-processing",
-  "ecoreRequiredFilesFolder":"./ecore"
+  "ecoreRequiredFilesFolder": "./ecore"
 }

@@ -140,7 +140,8 @@ public class LoadAADLModel implements RawModelLoader {
         if (parentName != null) {
             instanceName += parentName + "_";
         }
-        instanceName += systemInstance.getName() + ".aaxl2";
+        String simple_name = systemInstance.getName().split("_")[0];
+        instanceName += simple_name + ".aaxl2";
         Resource xmiResource = rs.createResource(URI.createURI(instanceName));
         xmiResource.getContents().add(systemInstance);
         xmiResource.save(null);
