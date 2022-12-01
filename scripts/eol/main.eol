@@ -1,4 +1,3 @@
-ModelImpl.println();
 var dataOutput = new Map;
 
 getSizeModel();

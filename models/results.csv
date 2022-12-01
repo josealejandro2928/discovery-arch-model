@@ -1,0 +1,10 @@
+id,model_name,src_path,conv_path,src_ext,is_parsed,is_sys_design,num_errors,sys_name,num_comp,num_conn
+0,syst,./models/raw-models/SecuritySystem/syst.aadl,./models/output-processing/xmi/0_SecuritySystem_SecuritySystem.aaxl2,aadl,TRUE,TRUE,1,,0,0
+1,ClientServer,./models/raw-models/SimpleWebServer/ClientServer.aadl,./models/output-processing/xmi/1_SimpleWebServer_ClientServer.aaxl2,aadl,TRUE,TRUE,1,,0,0
+2,UAS,./models/raw-models/UAS/UAS.aadl,./models/output-processing/xmi/2_UAS_UAS.aaxl2,aadl,TRUE,TRUE,10,,0,0
+3,UAS_Buses,./models/raw-models/UAS/UAS_Buses.aadl,./models/output-processing/xmi/,aadl,TRUE,FALSE,6,,0,0
+4,Drivers,./models/raw-models/UAV/Drivers.aadl,./models/output-processing/xmi/,aadl,TRUE,FALSE,10,,0,0
+5,FC,./models/raw-models/UAV/FC.aadl,./models/output-processing/xmi/5_UAV_FlightController.aaxl2,aadl,TRUE,TRUE,1,,0,0
+6,MC,./models/raw-models/UAV/MC.aadl,./models/output-processing/xmi/6_UAV_MissionComputer.aaxl2,aadl,TRUE,TRUE,10,,0,0
+7,SW,./models/raw-models/UAV/SW.aadl,./models/output-processing/xmi/,aadl,TRUE,FALSE,10,,0,0
+8,UAV,./models/raw-models/UAV/UAV.aadl,./models/output-processing/xmi/8_UAV_UAV.aaxl2,aadl,TRUE,TRUE,1,,0,0

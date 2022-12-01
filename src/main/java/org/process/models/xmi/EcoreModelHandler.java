@@ -1,35 +1,30 @@
 package org.process.models.xmi;
 
+import com.opencsv.CSVWriter;
+import org.discover.arch.model.Config;
 import org.discover.arch.model.SearchFileTraversal;
-import org.eclipse.emf.common.util.TreeIterator;
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.osate.aadl2.impl.SystemImplementationImpl;
-import org.osate.aadl2.instance.impl.ComponentInstanceImpl;
-import org.osate.aadl2.instance.impl.ConnectionInstanceImpl;
-import org.osate.aadl2.instance.impl.SystemInstanceImpl;
-import org.osate.aadl2.util.Aadl2ResourceImpl;
+
 
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EcoreModelHandler {
     static private EcoreModelHandler INSTANCE = null;
-    private List<Resource> models;
     private List<String> uriModels;
     private String rootPathFolder;
     private final List<String> modelExtension;
+    private List<Map<String, Object>> processedDataFromModel;
 
     private EcoreModelHandler() {
         this.uriModels = new ArrayList<>();
-        this.models = new ArrayList<>();
         this.modelExtension = Arrays.asList("xml", "xmi", "ecore", "aaxl2");
+        this.processedDataFromModel = new ArrayList<>();
 
     }
 
@@ -41,17 +36,9 @@ public class EcoreModelHandler {
         return INSTANCE;
     }
 
-    List<Resource> getModels() {
-        return this.models;
-    }
 
     public List<String> getUriModels() {
         return uriModels;
-    }
-
-    void addModel(Resource m) {
-        if (!models.contains(m))
-            models.add(m);
     }
 
     public void setRootPathFolder(String rootPathFolder) {
@@ -78,12 +65,12 @@ public class EcoreModelHandler {
         for (String modelUri : this.uriModels) {
             try {
                 Resource resource = ecoreStandAlone.getModelByURI(modelUri);
-                this.addModel(resource);
                 try {
                     System.out.println("------------------------------------------------------------------");
                     System.out.println("URI: " + modelUri);
-                    Object data = eolRunner.run("main", modelUri);
-                    System.out.println(data);
+                    Map<String, Object> data = (Map<String, Object>) eolRunner.run("main", modelUri);
+                    data.put("uri", modelUri);
+                    this.processedDataFromModel.add(data);
                     System.out.println("------------------------------------------------------------------");
                 } catch (Exception e) {
                     System.out.println("Error running eol: " + e.getMessage());
@@ -92,53 +79,74 @@ public class EcoreModelHandler {
                 System.out.println("Error getting the models from URI: " + e.getMessage());
                 e.printStackTrace();
             }
-
         }
     }
 
-
-    void processModels(EcoreStandAlone ecoreStandAlone) throws Exception {
-        System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
-        for (String modelUri : this.uriModels) {
-            try {
-                Resource resource = ecoreStandAlone.getModelByURI(modelUri);
-                this.addModel(resource);
-                DataRepresentationFeature data = getDataFromResource(resource);
-                System.out.println("------------------------------------------------------------------");
-                System.out.println("URI: " + modelUri);
-                System.out.println(data);
-                System.out.println("------------------------------------------------------------------");
-            } catch (Exception e) {
-                System.out.println("Error getting the models from URI: " + e.getMessage());
-                e.printStackTrace();
-            }
-
-        }
+    public List<Map<String, Object>> getProcessedDataFromModel() {
+        return processedDataFromModel;
     }
 
-    DataRepresentationFeature getDataFromResource(Resource resource) {
-        TreeIterator<EObject> treeIterator = resource.getAllContents();
-        DataRepresentationFeature objFeature = new DataRepresentationFeature();
-
-        while (treeIterator.hasNext()) {
-
-            EObject node = treeIterator.next();
-            if (node instanceof SystemInstanceImpl sysNode) {
-                objFeature.setSystemName(sysNode.getName());
+    void generateCSVFileFromProcessedModels(String name, Config configObj) {
+        try {
+            File file = Paths.get(configObj.getRootPath(), name + ".csv").toFile();
+            FileWriter outputFile = new FileWriter(file);
+            CSVWriter writer = new CSVWriter(outputFile);
+            List<Map<String, Object>> dataSource = this.createDataSource(configObj);
+            String[] header = {"id", "model_name", "src_path", "conv_path",
+                    "src_ext", "is_parsed", "is_sys_design", "num_errors",
+                    "sys_name", "num_comp", "num_conn"};
+            writer.writeNext(header);
+            for (Map elementData : dataSource) {
+                String[] row = new String[header.length];
+                int index = 0;
+                for (String key : header) {
+                    row[index++] = elementData.get(key) + "";
+                }
+                writer.writeNext(row);
             }
-            if (node instanceof ComponentInstanceImpl componentInstanceNode) {
-                objFeature.getComponents().add(componentInstanceNode);
-                objFeature.setComponentsNumber(objFeature.getComponentsNumber() + 1);
-            }
-            if (node instanceof ConnectionInstanceImpl connectionInstanceNode) {
-                objFeature.getConnections().add(connectionInstanceNode);
-                objFeature.setConnectionsNumber(objFeature.getConnectionsNumber() + 1);
-            }
+            writer.close();
+        } catch (Exception error) {
+            System.out.println("Error creating a csv file");
+            error.printStackTrace();
         }
-        return objFeature;
+
     }
 
-
+    List<Map<String, Object>> createDataSource(Config configObj) {
+        /*
+        { id:String
+          model_name:String
+          src_path:String
+          conv_path:String
+          src_ext:String
+          is_parsed:boolean
+          is_sys_design:boolean
+          num_errors:int
+          sys_name:String
+          num_comp:int
+          num_conn:int
+        }
+        * */
+        List<Map<String, Object>> dataSource;
+        List<Map<String, Object>> conversionLogs = configObj.getConversionLogs();
+        dataSource = conversionLogs.stream().map(x -> {
+            Map<String, Object> preData = new HashMap<>();
+            preData.put("id", x.get("id"));
+            preData.put("model_name", x.get("modelName"));
+            preData.put("src_path", x.get("pathAADLFile"));
+            preData.put("conv_path", x.get("pathXMLFile"));
+            preData.put("src_ext", x.get("extension"));
+            preData.put("is_parsed", x.get("isParsingSucceeded"));
+            List<String> errors = (List<String>) (x.get("errors"));
+            preData.put("is_sys_design", x.get("isSavedTheModel"));
+            preData.put("num_errors", errors.size());
+            preData.put("sys_name", "");
+            preData.put("num_comp", 0);
+            preData.put("num_conn", 0);
+            return preData;
+        }).collect(Collectors.toList());
+        return dataSource;
+    }
 }
 
 

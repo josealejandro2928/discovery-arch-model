@@ -20,7 +20,9 @@ public class Main {
             ecoreStandAlone.init(config.getEcoreRequiredFilesFolder());
             ecoreModelHandler.setRootPathFolder(rootModelsXMIFolderPath);
             ecoreModelHandler.discoverModelFromPath();
+            config.loadJSONFilesGeneratedByDiscoveringPhase();
             ecoreModelHandler.processModels(ecoreStandAlone, eolRunner);
+            ecoreModelHandler.generateCSVFileFromProcessedModels("results", config);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
             e.printStackTrace();
