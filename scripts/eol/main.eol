@@ -1,6 +1,8 @@
 var dataOutput = new Map;
 
 getSizeModel();
+getLabelsAndCategories();
+// dataOutput.println();
 return dataOutput;
 
 ///////////////// OPERATIONS GO HERE //////////////
@@ -11,5 +13,33 @@ operation getSizeModel() {
     dataOutput.put("systemName",systemName);
     dataOutput.put("components",components);
     dataOutput.put("connectors",connectors);
+    dataOutput.put("size",connectors + components);
+}
+
+operation getLabelsAndCategories() {
+    var hardware_components = 0;
+    var hardwareCategorySequence:Sequence = Sequence{"device","memory","bus","processor"};
+    var softwareCategorySequence:Sequence = Sequence{"process","thread","subprogram","threadGroup","subprogramGroup"};
+    var counterHardwareDevices = 0;
+    var counterSoftware = 0;
+    var counterData = 0;
+
+	for(componentEl in ModelImpl!ComponentInstance.all){
+	    var category = componentEl.category.name;
+
+	    if(hardwareCategorySequence.indexOf(category) > -1){
+	        counterHardwareDevices++;
+	    }
+	    if(softwareCategorySequence.indexOf(category) > -1){
+	        counterSoftware++;
+	    }
+	    if(componentEl.category.name == "data"){
+	        counterData++;
+	    }
+	}
+
+	dataOutput.put("no_hardware",counterHardwareDevices);
+    dataOutput.put("no_software",counterSoftware);
+    dataOutput.put("no_data_storage",counterData);
 }
 //////////////////////////////////////////////////

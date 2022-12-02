@@ -19,12 +19,12 @@ public class EcoreModelHandler {
     private List<String> uriModels;
     private String rootPathFolder;
     private final List<String> modelExtension;
-    private List<Map<String, Object>> processedDataFromModel;
+    private Map<String, Map<String, Object>> processedDataFromModel;
 
     private EcoreModelHandler() {
         this.uriModels = new ArrayList<>();
         this.modelExtension = Arrays.asList("xml", "xmi", "ecore", "aaxl2");
-        this.processedDataFromModel = new ArrayList<>();
+        this.processedDataFromModel = new HashMap<>();
 
     }
 
@@ -70,7 +70,7 @@ public class EcoreModelHandler {
                     System.out.println("URI: " + modelUri);
                     Map<String, Object> data = (Map<String, Object>) eolRunner.run("main", modelUri);
                     data.put("uri", modelUri);
-                    this.processedDataFromModel.add(data);
+                    this.processedDataFromModel.put(modelUri, data);
                     System.out.println("------------------------------------------------------------------");
                 } catch (Exception e) {
                     System.out.println("Error running eol: " + e.getMessage());
@@ -82,7 +82,7 @@ public class EcoreModelHandler {
         }
     }
 
-    public List<Map<String, Object>> getProcessedDataFromModel() {
+    public Map<String, Map<String, Object>> getProcessedDataFromModel() {
         return processedDataFromModel;
     }
 
@@ -94,7 +94,7 @@ public class EcoreModelHandler {
             List<Map<String, Object>> dataSource = this.createDataSource(configObj);
             String[] header = {"id", "model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design", "num_errors",
-                    "sys_name", "num_comp", "num_conn"};
+                    "sys_name", "num_comp", "num_conn", "size", "no_hardware_comp", "no_software_comp", "no_data_comp"};
             writer.writeNext(header);
             for (Map elementData : dataSource) {
                 String[] row = new String[header.length];
@@ -105,6 +105,7 @@ public class EcoreModelHandler {
                 writer.writeNext(row);
             }
             writer.close();
+            System.out.println("GENERATED CSV SUCCESSFULLY: " + file.getAbsolutePath());
         } catch (Exception error) {
             System.out.println("Error creating a csv file");
             error.printStackTrace();
@@ -125,24 +126,43 @@ public class EcoreModelHandler {
           sys_name:String
           num_comp:int
           num_conn:int
+          size:int
+          no_hardware_comp:int
+          no_software_comp:int
+          no_data_comp:int
         }
         * */
         List<Map<String, Object>> dataSource;
         List<Map<String, Object>> conversionLogs = configObj.getConversionLogs();
         dataSource = conversionLogs.stream().map(x -> {
+            String uriToConvertedModel = (String) x.get("pathXMLFile");
             Map<String, Object> preData = new HashMap<>();
             preData.put("id", x.get("id"));
             preData.put("model_name", x.get("modelName"));
             preData.put("src_path", x.get("pathAADLFile"));
-            preData.put("conv_path", x.get("pathXMLFile"));
+            preData.put("conv_path", uriToConvertedModel);
             preData.put("src_ext", x.get("extension"));
             preData.put("is_parsed", x.get("isParsingSucceeded"));
             List<String> errors = (List<String>) (x.get("errors"));
             preData.put("is_sys_design", x.get("isSavedTheModel"));
             preData.put("num_errors", errors.size());
-            preData.put("sys_name", "");
+            preData.put("sys_name", null);
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
+            preData.put("size", 0);
+            preData.put("no_hardware_comp", 0);
+            preData.put("no_software_comp", 0);
+            preData.put("no_data_comp", 0);
+            if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
+                Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
+                preData.put("sys_name", processedData.get("systemName"));
+                preData.put("num_comp", processedData.get("components"));
+                preData.put("num_conn", processedData.get("connectors"));
+                preData.put("size", processedData.get("size"));
+                preData.put("no_hardware_comp", processedData.get("no_hardware"));
+                preData.put("no_software_comp", processedData.get("no_software"));
+                preData.put("no_data_comp", processedData.get("no_data_storage"));
+            }
             return preData;
         }).collect(Collectors.toList());
         return dataSource;
