@@ -64,7 +64,6 @@ public class EcoreModelHandler {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         for (String modelUri : this.uriModels) {
             try {
-                Resource resource = ecoreStandAlone.getModelByURI(modelUri);
                 try {
                     System.out.println("------------------------------------------------------------------");
                     System.out.println("URI: " + modelUri);
@@ -94,7 +93,8 @@ public class EcoreModelHandler {
             List<Map<String, Object>> dataSource = this.createDataSource(configObj);
             String[] header = {"id", "model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design", "num_errors",
-                    "sys_name", "num_comp", "num_conn", "size", "no_hardware_comp", "no_software_comp", "no_data_comp"};
+                    "sys_name", "num_comp", "num_conn", "size", "udy",
+                    "no_hardware_comp", "no_software_comp", "no_data_comp"};
             writer.writeNext(header);
             for (Map elementData : dataSource) {
                 String[] row = new String[header.length];
@@ -110,6 +110,8 @@ public class EcoreModelHandler {
             System.out.println("Error creating a csv file");
             error.printStackTrace();
         }
+
+        this.generateLegends(configObj);
 
     }
 
@@ -150,6 +152,7 @@ public class EcoreModelHandler {
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
             preData.put("size", 0);
+            preData.put("udy", 0);
             preData.put("no_hardware_comp", 0);
             preData.put("no_software_comp", 0);
             preData.put("no_data_comp", 0);
@@ -159,6 +162,7 @@ public class EcoreModelHandler {
                 preData.put("num_comp", processedData.get("components"));
                 preData.put("num_conn", processedData.get("connectors"));
                 preData.put("size", processedData.get("size"));
+                preData.put("udy", processedData.get("udy"));
                 preData.put("no_hardware_comp", processedData.get("no_hardware"));
                 preData.put("no_software_comp", processedData.get("no_software"));
                 preData.put("no_data_comp", processedData.get("no_data_storage"));
@@ -166,6 +170,47 @@ public class EcoreModelHandler {
             return preData;
         }).collect(Collectors.toList());
         return dataSource;
+    }
+
+    void generateLegends(Config configObj) {
+        try {
+            File file = Paths.get(configObj.getRootPath(), "legends.csv").toFile();
+            FileWriter outputFile = new FileWriter(file);
+            CSVWriter writer = new CSVWriter(outputFile);
+            Map<String, String> dataSource = new HashMap<>();
+            dataSource.put("id", "The index in the source was found in the file system");
+            dataSource.put("model_name", "The name of the model resulting of parsing the file .aadl");
+            dataSource.put("src_path", "The global path where the model[source] was found in the file system");
+            dataSource.put("conv_path", "The global path of the instantiated model converted to XML");
+            dataSource.put("src_ext", "The extension of the model[source] ex: .aadl ");
+            dataSource.put("is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken");
+            dataSource.put("is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model");
+            dataSource.put("num_errors", "A maximum of 10 error resulting of the validation provided by OSATE api over and aadl model");
+            dataSource.put("sys_name", "The name of the SystemInstance model found");
+            dataSource.put("num_comp", "The number of component of the model: ComponentInstance found");
+            dataSource.put("num_conn", "The number of connections of the model: ConnectionInstance found");
+            dataSource.put("size", "The sum of components and connection");
+            dataSource.put("udy", "The Understandability: The number of connections between components divided by N^2-N, " +
+                    "where N is the number of components");
+            dataSource.put("no_hardware_comp", "The number of component which belong to " +
+                    "the category of [\"device\",\"memory\",\"bus\",\"processor\"]");
+            dataSource.put("no_software_comp", "The number of component which belong to the " +
+                    "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]");
+            dataSource.put("no_data_comp", "The number of component which belong to the category of [\"data\"]");
+
+            String[] header = {"column", "description"};
+            writer.writeNext(header);
+            for (String col : dataSource.keySet().stream().sorted().toList()) {
+                String[] row = new String[]{col, dataSource.get(col)};
+                writer.writeNext(row);
+            }
+            writer.close();
+            System.out.println("GENERATED LEGEND SUCCESSFULLY: " + file.getAbsolutePath());
+        } catch (Exception error) {
+            System.out.println("Error creating a csv file");
+            error.printStackTrace();
+        }
+
     }
 }
 
