@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -138,16 +139,30 @@ public class Config {
     public void addMoreArchivesForSearching(Object data) {
         if (data instanceof Iterable) {
             for (String el : (Iterable<String>) data) {
-                this.archivesForSearching.add(el);
+                if (!this.archivesForSearching.contains(el))
+                    this.archivesForSearching.add(el);
             }
         } else {
-            this.archivesForSearching.add((String) data);
+            if (!this.archivesForSearching.contains((String) data))
+                this.archivesForSearching.add((String) data);
+
         }
+        this.configObj.put("archivesForSearching", this.archivesForSearching);
         this.saveConfig();
     }
 
     public boolean saveConfig() {
-        return true;
+        try {
+            String jsonStr = new JSONObject(this.configObj).toString(2);
+            FileWriter fw = new FileWriter(Paths.get(configPath).toString());
+            fw.write(jsonStr);
+            fw.close();
+            return true;
+        } catch (Exception e) {
+            System.out.println("ERROR SAVING THE CONFIG JSON");
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void createFolderOutput() throws Exception {
