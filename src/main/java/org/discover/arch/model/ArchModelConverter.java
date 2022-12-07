@@ -1,5 +1,6 @@
 package org.discover.arch.model;
 
+import com.google.inject.Inject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.osate.standalone.model.RawModelLoader;
@@ -26,6 +27,7 @@ public class ArchModelConverter {
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
     JarExecutor jarExe = new JarExecutor();
     JSONArray logsOutput = new JSONArray();
+    Config configObj = Config.getInstance(null);
 
     ArchModelConverter(String rootPath) {
         this.rootPath = rootPath;
@@ -39,10 +41,10 @@ public class ArchModelConverter {
         converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
     }
 
-    ArchModelConverter(Config config) {
-        this.rootPath = config.getRootPath();
-        this.extensions = config.getExtensionsForSearching();
-        this.folderOutputName = config.getOutputFolderName();
+    ArchModelConverter() {
+        this.rootPath = this.configObj.getRootPath();
+        this.extensions = this.configObj.getExtensionsForSearching();
+        this.folderOutputName = this.configObj.getOutputFolderName();
         converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
     }
 
@@ -79,8 +81,8 @@ public class ArchModelConverter {
     }
 
     public void initProcessing() throws Exception {
-        if (this.dataModelFiles.size() == 0)
-            throw new Exception("There is not filesModelPath for processing");
+//        if (this.dataModelFiles.size() == 0)
+//            throw new Exception("There is not filesModelPath for processing");
         System.out.println("COPYING TO FOLDERS THE FILES...");
         this.copyFoundedFiles();
         System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");

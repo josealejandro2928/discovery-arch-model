@@ -62,7 +62,7 @@
             <artifactId>org.osate.xtext.aadl2</artifactId>
             <version>7.0.0.qualifier</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/dependencies/osate_xtext.jar</systemPath>
+            <systemPath>${project.basedir}/dependencies/osate_core.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -144,6 +144,18 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.7.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>ui</artifactId>
+            <version>3.3.0-I20070614-0800</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.swt</artifactId>
+            <version>3.122.0</version>
         </dependency>
     </dependencies>
 

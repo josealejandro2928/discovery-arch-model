@@ -29,9 +29,9 @@ public class Main {
         try {
             System.out.println("*********************STAGE 1********************");
             System.out.println("ANALYZING THE RESOURCES PATHS");
-            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer(Objects.requireNonNull(config));
-            SearchFileTraversal fileDiscover = new SearchFileTraversal(config).setSearchPaths(resourcesProviderAnalyzer.getFileResourcePaths());
-            ArchModelConverter archModelConverter = new ArchModelConverter(config);
+            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
+            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(resourcesProviderAnalyzer.getFileResourcePaths());
+            ArchModelConverter archModelConverter = new ArchModelConverter();
             System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
             config.createFolderOutput();
 

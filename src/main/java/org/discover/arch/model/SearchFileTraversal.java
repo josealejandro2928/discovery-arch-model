@@ -1,11 +1,16 @@
 package org.discover.arch.model;
 
+import com.google.inject.Inject;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SearchFileTraversal {
     String rootPath;
@@ -13,9 +18,10 @@ public class SearchFileTraversal {
     List<String> extensions;
     List<String> searchPaths;
     String logfilePath;
-    List<String> dataFilesFound = new ArrayList<>();
+    Set<String> dataFilesFound = new HashSet<>();
     List<String> dataFilesError = new ArrayList<>();
     HashMap<String, String> scanningResult = new HashMap<>();
+    private Config configObj = Config.getInstance(null);
 
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
         this.rootPath = rootPath;
@@ -24,11 +30,21 @@ public class SearchFileTraversal {
         this.folderOutputName = folderOutputName;
     }
 
-    SearchFileTraversal(Config configObj) {
-        this.rootPath = configObj.getRootPath();
-        this.searchPaths = configObj.getArchivesForSearching();
-        this.extensions = configObj.getExtensionsForSearching();
-        this.folderOutputName = configObj.getOutputFolderName();
+    SearchFileTraversal() {
+        this.rootPath = this.configObj.getRootPath();
+        this.searchPaths = this.configObj.getArchivesForSearching();
+        this.extensions = this.configObj.getExtensionsForSearching();
+        this.folderOutputName = this.configObj.getOutputFolderName();
+        try {
+            Path previousFoundFiles = Paths.get(this.configObj.getRootPath(), ".files-found.txt").toAbsolutePath();
+            this.dataFilesFound.addAll(Files.readAllLines(previousFoundFiles));
+            this.dataFilesFound = this.dataFilesFound.stream().filter(x -> Paths.get(x).toFile().exists()).collect(Collectors.toSet());
+            if (this.dataFilesFound.size() > 0)
+                System.out.println("PATHS previously LOADED");
+        } catch (Exception e) {
+            System.out.println("NOT LOADED FILES DISCOVERED IN PREVIOUS SEARCHING");
+
+        }
     }
 
     public SearchFileTraversal setFolderOutPutName(String outFolder) {
@@ -40,8 +56,11 @@ public class SearchFileTraversal {
         /// Run a BFS for searching ///
         int totalFiles = 0;
         long startTime = System.nanoTime();
-        Queue<String> queue = new LinkedList<>(this.searchPaths);
+        List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x)).toList();
+        Queue<String> queue = new LinkedList<>(rootPathToScan);
         System.out.println("SCANNING FILES ...");
+        System.out.println(rootPathToScan);
+
         while (queue.size() > 0) {
             String pathFileOrArchive = queue.poll();
             totalFiles++;
@@ -49,29 +68,40 @@ public class SearchFileTraversal {
                 System.out.println("Analysing file: " + pathFileOrArchive + " ...");
             }
             File file = new File(pathFileOrArchive);
-            if (file.isDirectory()) {
-                try {
-                    for (File childFile : Objects.requireNonNull(file.listFiles())) {
-                        queue.add(childFile.getPath());
+            if (!this.configObj.getAvoidFileNames().contains(file.getName())) {
+                if (file.isDirectory()) {
+                    try {
+                        for (File childFile : Objects.requireNonNull(file.listFiles())) {
+                            queue.add(childFile.getPath());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("ERROR reading the files of the directory: " + file);
+                        this.dataFilesError.add(file.getPath());
                     }
-                } catch (Exception e) {
-                    System.err.println("ERROR reading the files of the directory: " + file);
-                    this.dataFilesError.add(file.getPath());
-                }
-            } else {
-                String filePath = file.getPath();
-                String ext = getExtension(filePath);
-                if (this.extensions.contains(ext)) {
-                    this.dataFilesFound.add(filePath);
+                } else {
+                    String filePath = file.getPath();
+                    String ext = getExtension(filePath);
+                    if (this.extensions.contains(ext)) {
+                        this.dataFilesFound.add(filePath);
+                    }
                 }
             }
+
         }
+
+
+        /////////UPDATING THE CACHE WITH THE ROOTS PATH OF MODELS////////
+        for (String x : rootPathToScan) {
+            this.configObj.putInCache(x);
+        }
+        this.configObj.persistCacheInDisk();
+        ////////////////////////////////////////////////////////////////
 
         long endTime = System.nanoTime();
         System.out.println("SCANNING COMPLETED");
         if (storeOnRootPath) {
             try {
-                this.logfilePath = Paths.get(this.rootPath, this.folderOutputName, "files-found.txt").toString();
+                this.logfilePath = Paths.get(this.rootPath, ".files-found.txt").toString();
                 FileWriter myWriter = new FileWriter(this.logfilePath);
                 myWriter.write(String.join("\n", this.dataFilesFound));
                 if (this.dataFilesError.size() > 0) {
@@ -91,7 +121,7 @@ public class SearchFileTraversal {
         this.scanningResult.put("filesMatched", this.dataFilesFound.size() + "");
         this.scanningResult.put("filesWithErrors", this.dataFilesError.size() + "");
         this.scanningResult.put("elapsedTime", new DecimalFormat("0.000").format(elapsedTime) + "s");
-        return this.dataFilesFound;
+        return this.dataFilesFound.stream().toList();
     }
 
     @Override

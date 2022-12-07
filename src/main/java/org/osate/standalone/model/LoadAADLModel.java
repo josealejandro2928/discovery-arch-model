@@ -29,13 +29,11 @@ import java.util.Map;
 public class LoadAADLModel implements RawModelLoader {
     private static LoadAADLModel INSTANCE = null;
     Injector injector;
-    XtextResourceSet rs;
 
     private LoadAADLModel() {
         this.injector = new Aadl2StandaloneSetup().createInjectorAndDoEMFRegistration();
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("aaxl2", new Aadl2ResourceFactoryImpl());
         InstancePackage.eINSTANCE.eClass();
-        this.rs = injector.getInstance(XtextResourceSet.class);
     }
 
     public static LoadAADLModel getInstance() {
@@ -46,15 +44,16 @@ public class LoadAADLModel implements RawModelLoader {
     }
 
     public OutputLoadedModelSchema loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
+        XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
         String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
-        final Resource[] resources = new Resource[pathToModelsFiles.size()];
-        File fileAddl = new File(pathAADLFile);
+        Resource[] resources = new Resource[pathToModelsFiles.size()];
+        File fileAadl = new File(pathAADLFile);
         File fileXML = new File(pathXMLFile);
 
-        if (!fileAddl.exists()) {
+        if (!fileAadl.exists()) {
             throw new Exception("The addl file: " + pathAADLFile + " does not exits");
         }
         if (!fileXML.exists()) {
@@ -65,10 +64,10 @@ public class LoadAADLModel implements RawModelLoader {
             for (int i = 0; i < pathToModelsFiles.size(); i++) {
                 resources[i] = rs.getResource(URI.createURI(pathToModelsFiles.get(i)), true);
             }
-            for (final Resource resource : resources) {
+            for (Resource resource : resources) {
                 resource.load(null);
             }
-            final Resource rsrc = resources[0];
+            Resource rsrc = resources[0];
             EcoreUtil.resolveAll(rsrc);
             ////////////// VALIDATE THE MODEL ///////////////////////////
             outputSchema.pathAADLFile = pathAADLFile;
@@ -92,6 +91,7 @@ public class LoadAADLModel implements RawModelLoader {
 
             try {
                 for (SystemImplementation systemImpl : systemImplementations) {
+//                    System.out.println("INSTANTIATION MODEL: " + pathAADLFile);
                     final SystemInstance systemInstance = InstantiateModel.instantiate(systemImpl);
                     outputSchema.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile,
                             parentDirectoryName, id);
