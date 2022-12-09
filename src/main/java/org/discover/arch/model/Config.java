@@ -30,7 +30,8 @@ public class Config {
     private List<String> filesFound;
     private Map<String, Object> reports;
     private Map<String, Date> cache;
-    private int timeCacheInSeconds;
+    int timeCacheForDiscoveringSearchOverFilesInSeconds;
+    int timeCacheForPollingFromExternalResources;
 
 
     private Config(Map<String, Object> data) throws Exception {
@@ -43,7 +44,8 @@ public class Config {
         this.externalResources = (List<String>) data.get("externalResources");
         this.avoidFileNames = (List<String>) data.get("avoidFileNames");
         this.ecoreRequiredFilesFolder = (String) data.get("ecoreRequiredFilesFolder");
-        this.timeCacheInSeconds = (Integer) data.get("timeCacheInSeconds");
+        this.timeCacheForDiscoveringSearchOverFilesInSeconds = (Integer) data.get("timeCacheForDiscoveringSearchOverFilesInSeconds");
+        this.timeCacheForPollingFromExternalResources = (Integer) data.get("timeCacheForPollingFromExternalResources");
         this.conversionLogs = new ArrayList<>();
         this.filesFound = new ArrayList<>();
         this.reports = new HashMap<>();
@@ -83,7 +85,7 @@ public class Config {
         File file = new File(configPath);
         if (!file.exists())
             throw new Exception("A config.json file path must be provided");
-        if(!file.isFile())
+        if (!file.isFile())
             throw new Exception("A config.json must be a file");
 
         String read = String.join("\n", Files.readAllLines(file.toPath()));
@@ -106,8 +108,11 @@ public class Config {
         if (!data.has("avoidFileNames"))
             data.put("avoidFileNames", new String[]{});
 
-        if (!data.has("timeCacheInSeconds"))
-            data.put("timeCacheInSeconds", 60);
+        if (!data.has("timeCacheForDiscoveringSearchOverFilesInSeconds"))
+            data.put("timeCacheForDiscoveringSearchOverFilesInSeconds", 60);
+
+        if (!data.has("timeCacheForPollingFromExternalResources"))
+            data.put("timeCacheForPollingFromExternalResources", 60 * 5);
         return data;
     }
 
@@ -268,10 +273,10 @@ public class Config {
         this.cache.put(x, new Date());
     }
 
-    public boolean isInCache(String x) {
+    public boolean isInCache(String x, int delay) {
         boolean isStoredInCache = this.cache.containsKey(x);
         if (!isStoredInCache) return false;
-        int secondsToInvalidate = this.timeCacheInSeconds;
+        int secondsToInvalidate = delay;
         Date dateOfEntry = this.cache.get(x);
         Date now = new Date();
         long diff = now.getTime() - dateOfEntry.getTime();

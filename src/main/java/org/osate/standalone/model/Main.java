@@ -30,7 +30,7 @@ public class Main {
             }
             if (isAadl) {
                 System.out.println(URI_AADL_MODEL);
-                RawModelLoader.OutputLoadedModelSchema outputSchema = loadAADLModel.loadModel(URI_AADL_MODEL,
+                Object outputSchema = loadAADLModel.loadModel(URI_AADL_MODEL,
                         "src/main/java/org/osate/standalone/model/example_models/", "5", false);
                 System.out.println(outputSchema);
             }

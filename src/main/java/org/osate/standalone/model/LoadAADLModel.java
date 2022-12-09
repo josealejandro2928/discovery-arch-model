@@ -1,5 +1,6 @@
 package org.osate.standalone.model;
 
+import com.google.common.collect.BoundType;
 import com.google.inject.Injector;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -23,6 +24,7 @@ import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,9 +45,10 @@ public class LoadAADLModel implements RawModelLoader {
         return INSTANCE;
     }
 
-    public OutputLoadedModelSchema loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
+    public Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
+        List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
         String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
@@ -89,19 +92,21 @@ public class LoadAADLModel implements RawModelLoader {
                 }
             }
 
-            try {
-                for (SystemImplementation systemImpl : systemImplementations) {
-//                    System.out.println("INSTANTIATION MODEL: " + pathAADLFile);
+            for (SystemImplementation systemImpl : systemImplementations) {
+                OutputLoadedModelSchema output = new OutputLoadedModelSchema(outputSchema);
+                try {
                     final SystemInstance systemInstance = InstantiateModel.instantiate(systemImpl);
-                    outputSchema.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile,
-                            parentDirectoryName, id);
-                    outputSchema.isSavedTheModel = true;
+                    output.isSavedTheModel = true;
+                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, parentDirectoryName, id);
+                    resultOutput.add(output);
+                } catch (final Exception e) {
+                    output.isSavedTheModel = false;
+                    output.isParsingSucceeded = false;
+                    e.printStackTrace();
+                    throw new Exception("Error during instantiation " + e.getMessage());
                 }
-            } catch (final Exception e) {
-                e.printStackTrace();
-                throw new Exception("Error during instantiation " + e.getMessage());
             }
-            return outputSchema;
+            return resultOutput;
         } catch (final Exception e) {
             outputSchema.errors.add(e.getMessage());
             outputSchema.isParsingSucceeded = false;
@@ -140,7 +145,8 @@ public class LoadAADLModel implements RawModelLoader {
         if (parentName != null) {
             instanceName += parentName + "_";
         }
-        String simple_name = systemInstance.getName().split("_")[0];
+
+        String simple_name = systemInstance.getName().replaceAll("_Instance", "");
         instanceName += simple_name + ".aaxl2";
         Resource xmiResource = rs.createResource(URI.createURI(instanceName));
         xmiResource.getContents().add(systemInstance);
