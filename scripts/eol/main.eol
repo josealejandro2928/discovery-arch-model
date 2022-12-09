@@ -24,6 +24,7 @@ operation getLabelsAndCategories() {
     var counterHardwareDevices = 0;
     var counterSoftware = 0;
     var counterData = 0;
+    var counterSystem = 0;
 
 	for(componentEl in ModelImpl!ComponentInstance.all){
 	    var category = componentEl.category.name;
@@ -37,18 +38,25 @@ operation getLabelsAndCategories() {
 	    if(componentEl.category.name == "data"){
 	        counterData++;
 	    }
+	    if(componentEl.category.name == "system"){
+	        counterSystem++;
+	    }
 	}
 
 	dataOutput.put("no_hardware",counterHardwareDevices);
     dataOutput.put("no_software",counterSoftware);
     dataOutput.put("no_data_storage",counterData);
+    dataOutput.put("no_sys",counterSystem);
 }
 
 operation getMetrics(){
     // Computes **Understandability** //.
     var n:Real = dataOutput.get("components").asReal();
     var c:Real = dataOutput.get("connectors").asReal();
-    var udy:Real = c / (n * (n - 1));
+    var udy:Real = 0;
+    if(n > 1){
+        udy = c / (n * (n - 1));
+    }
     dataOutput.put("udy",udy);
 }
 //////////////////////////////////////////////////

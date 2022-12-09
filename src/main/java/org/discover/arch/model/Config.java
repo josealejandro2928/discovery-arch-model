@@ -60,7 +60,7 @@ public class Config {
 
     public static Config getInstance(String configPath) {
         if (INSTANCE == null) {
-            System.out.println("Loading config .....");
+            System.out.println("Loading config once .....");
             try {
                 JSONObject data = loadConfig(configPath);
                 INSTANCE = new Config(data.toMap());
@@ -83,6 +83,9 @@ public class Config {
         File file = new File(configPath);
         if (!file.exists())
             throw new Exception("A config.json file path must be provided");
+        if(!file.isFile())
+            throw new Exception("A config.json must be a file");
+
         String read = String.join("\n", Files.readAllLines(file.toPath()));
         JSONObject data = new JSONObject(read);
         if (!data.has("rootPath"))
@@ -185,7 +188,7 @@ public class Config {
     }
 
     public List<Map<String, Object>> getConversionLogs() {
-        return conversionLogs;
+        return this.conversionLogs;
     }
 
     public Map<String, Object> getReports() {

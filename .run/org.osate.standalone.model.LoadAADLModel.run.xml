@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="org.osate.standalone.model.LoadAADLModel" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.osate.standalone.model.Main" />
-    <module name="DISCOVERY-ARCH-MODELS" />
+    <module name="discovery.arch.model" />
     <option name="PROGRAM_PARAMETERS" value="src/main/java/org/osate/standalone/model/example_models/UAV/UAV.aadl" />
     <method v="2">
       <option name="Make" enabled="true" />

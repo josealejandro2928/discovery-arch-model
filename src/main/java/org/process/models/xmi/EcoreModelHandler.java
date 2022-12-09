@@ -20,12 +20,13 @@ public class EcoreModelHandler {
     private String rootPathFolder;
     private final List<String> modelExtension;
     private Map<String, Map<String, Object>> processedDataFromModel;
+    private final Config configObj = Config.getInstance(null);
 
     private EcoreModelHandler() {
         this.uriModels = new ArrayList<>();
         this.modelExtension = Arrays.asList("xml", "xmi", "ecore", "aaxl2");
         this.processedDataFromModel = new HashMap<>();
-
+        this.rootPathFolder = Paths.get(this.configObj.getRootPath(), this.configObj.getOutputFolderName(), "xmi").toString();
     }
 
     static EcoreModelHandler getInstance() {
@@ -48,6 +49,11 @@ public class EcoreModelHandler {
     void discoverModelFromPath() throws Exception {
         if (rootPathFolder == null)
             throw new Exception("There is not root path for reading the XMI models");
+        File rootPathFolderFile = Paths.get(rootPathFolder).toFile();
+        if (!rootPathFolderFile.exists())
+            throw new Exception("The path to get the xmi converted files does not exist: " + rootPathFolderFile);
+        if (!rootPathFolderFile.isDirectory())
+            throw new Exception("The file to process the xmi converted models must be a directory");
         this.uriModels = new ArrayList<>();
         Files.walk(Path.of(rootPathFolder)).sorted().map(Path::toFile).forEach(
                 (File file) -> {
@@ -60,7 +66,7 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(EcoreStandAlone ecoreStandAlone, EolRunner eolRunner) throws Exception {
+    void processModels(EolRunner eolRunner) throws Exception {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         for (String modelUri : this.uriModels) {
             try {
@@ -85,16 +91,16 @@ public class EcoreModelHandler {
         return processedDataFromModel;
     }
 
-    void generateCSVFileFromProcessedModels(String name, Config configObj) {
+    void generateCSVFileFromProcessedModels(String name) {
         try {
-            File file = Paths.get(configObj.getRootPath(), name + ".csv").toFile();
+            File file = Paths.get(this.configObj.getRootPath(), name + ".csv").toFile();
             FileWriter outputFile = new FileWriter(file);
             CSVWriter writer = new CSVWriter(outputFile);
-            List<Map<String, Object>> dataSource = this.createDataSource(configObj);
+            List<Map<String, Object>> dataSource = this.createDataSource();
             String[] header = {"id", "model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design", "num_errors",
                     "sys_name", "num_comp", "num_conn", "size", "udy",
-                    "no_hardware_comp", "no_software_comp", "no_data_comp"};
+                    "no_hardware_comp","no_sys_comp", "no_software_comp", "no_data_comp"};
             writer.writeNext(header);
             for (Map elementData : dataSource) {
                 String[] row = new String[header.length];
@@ -115,7 +121,7 @@ public class EcoreModelHandler {
 
     }
 
-    List<Map<String, Object>> createDataSource(Config configObj) {
+    List<Map<String, Object>> createDataSource() {
         /*
         { id:String
           model_name:String
@@ -130,12 +136,13 @@ public class EcoreModelHandler {
           num_conn:int
           size:int
           no_hardware_comp:int
+          no_sys_comp:int
           no_software_comp:int
           no_data_comp:int
         }
         * */
         List<Map<String, Object>> dataSource;
-        List<Map<String, Object>> conversionLogs = configObj.getConversionLogs();
+        List<Map<String, Object>> conversionLogs = this.configObj.getConversionLogs();
         dataSource = conversionLogs.stream().map(x -> {
             String uriToConvertedModel = (String) x.get("pathXMLFile");
             Map<String, Object> preData = new HashMap<>();
@@ -154,6 +161,7 @@ public class EcoreModelHandler {
             preData.put("size", 0);
             preData.put("udy", 0);
             preData.put("no_hardware_comp", 0);
+            preData.put("no_sys_comp", 0);
             preData.put("no_software_comp", 0);
             preData.put("no_data_comp", 0);
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
@@ -164,6 +172,7 @@ public class EcoreModelHandler {
                 preData.put("size", processedData.get("size"));
                 preData.put("udy", processedData.get("udy"));
                 preData.put("no_hardware_comp", processedData.get("no_hardware"));
+                preData.put("no_sys_comp", processedData.get("no_sys"));
                 preData.put("no_software_comp", processedData.get("no_software"));
                 preData.put("no_data_comp", processedData.get("no_data_storage"));
             }

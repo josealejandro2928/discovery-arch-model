@@ -9,22 +9,23 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("Running ecore processing");
+        if (args.length > 0) {
+            configPath = args[0];
+        }
         try {
             Config config = Config.getInstance(configPath);
+            if (config == null)
+                throw new Exception("The config object cannot be null");
             EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
             EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
             EolRunner eolRunner = EolRunner.getInstance();
-            if (config == null)
-                throw new Exception("The config object cannot be null");
-            String rootModelsXMIFolderPath = Paths.get(config.getRootPath(), config.getOutputFolderName(), "xmi").toString();
-            ecoreStandAlone.init(config.getEcoreRequiredFilesFolder());
-            ecoreModelHandler.setRootPathFolder(rootModelsXMIFolderPath);
+            ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
             config.loadJSONFilesGeneratedByDiscoveringPhase();
-            ecoreModelHandler.processModels(ecoreStandAlone, eolRunner);
-            ecoreModelHandler.generateCSVFileFromProcessedModels("results", config);
+            ecoreModelHandler.processModels(eolRunner);
+            ecoreModelHandler.generateCSVFileFromProcessedModels("results");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
 //        try {
