@@ -1,20 +1,8 @@
 package org.process.models.xmi;
 
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import org.eclipse.epsilon.common.util.StringProperties;
-import org.eclipse.epsilon.emc.emf.EmfUtil;
-import org.eclipse.epsilon.emc.emf.InMemoryEmfModel;
 import org.eclipse.epsilon.eol.EolModule;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
-import org.eclipse.epsilon.eol.execute.context.FrameStack;
-import org.eclipse.epsilon.eol.launch.EolRunConfiguration;
 import org.eclipse.epsilon.emc.emf.EmfModel;
-import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 import java.io.File;
 import java.nio.file.Path;

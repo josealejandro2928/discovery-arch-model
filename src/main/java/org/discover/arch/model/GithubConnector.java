@@ -81,7 +81,6 @@ public class GithubConnector implements ExternalConnector {
     public void deleteBeforeLoading(String clonedDirectoryRepo) throws Exception {
         File file = new File(clonedDirectoryRepo);
         if (!file.exists()) return;
-//        File parentFile = new File(file.getParent());
         Files.walk(file.toPath())
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)

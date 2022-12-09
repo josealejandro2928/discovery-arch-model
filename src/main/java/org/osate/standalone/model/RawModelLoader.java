@@ -1,12 +1,14 @@
 package org.osate.standalone.model;
 
+import org.eclipse.xtext.xbase.lib.ObjectExtensions;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public interface RawModelLoader {
-    public OutputLoadedModelSchema loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
+    public Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
 
     public class OutputLoadedModelSchema {
         List<String> errors;
@@ -21,6 +23,14 @@ public interface RawModelLoader {
             this.pathAADLFile = "";
             this.pathXMLFile = "";
             this.modelName = "";
+            this.isParsingSucceeded = true;
+            this.isSavedTheModel = false;
+        }
+        OutputLoadedModelSchema(OutputLoadedModelSchema o) {
+            this.errors = o.errors;
+            this.pathAADLFile = o.pathAADLFile;
+            this.modelName = o.modelName;
+            this.pathXMLFile = "";
             this.isParsingSucceeded = true;
             this.isSavedTheModel = false;
         }

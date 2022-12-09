@@ -56,7 +56,8 @@ public class SearchFileTraversal {
         /// Run a BFS for searching ///
         int totalFiles = 0;
         long startTime = System.nanoTime();
-        List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x)).toList();
+        int delayCache = this.configObj.timeCacheForDiscoveringSearchOverFilesInSeconds;
+        List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x, delayCache)).toList();
         Queue<String> queue = new LinkedList<>(rootPathToScan);
         System.out.println("SCANNING FILES ...");
         System.out.println(rootPathToScan);

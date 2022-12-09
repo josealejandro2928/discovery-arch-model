@@ -128,13 +128,25 @@ public class ArchModelConverter {
     private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, boolean verbose) throws Exception {
         String extension = SearchFileTraversal.getExtension(pathFile);
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
-        RawModelLoader.OutputLoadedModelSchema data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
-        Map<String, Object> dataOutMap = data.toMap();
-        if (verbose)
-            System.out.println(dataOutMap);
-        dataOutMap.put("extension", extension);
-        dataOutMap.put("id", id);
-        this.logsOutput.put(new JSONObject(dataOutMap));
+        Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
+        if (data instanceof Iterable) {
+            ((List<RawModelLoader.OutputLoadedModelSchema>) data).stream().forEach((RawModelLoader.OutputLoadedModelSchema x) -> {
+                Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) x).toMap();
+                if (verbose)
+                    System.out.println(dataOutMap);
+                dataOutMap.put("extension", extension);
+                dataOutMap.put("id", id);
+                this.logsOutput.put(new JSONObject(dataOutMap));
+            });
+        } else {
+            Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) data).toMap();
+            if (verbose)
+                System.out.println(dataOutMap);
+            dataOutMap.put("extension", extension);
+            dataOutMap.put("id", id);
+            this.logsOutput.put(new JSONObject(dataOutMap));
+        }
+
     }
 
     private void loggingConvertingResult() throws Exception {
