@@ -1,5 +1,6 @@
 package org.process.models.xmi;
 
+import org.discover.arch.model.Config;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
@@ -18,6 +19,7 @@ public class EcoreStandAlone {
     static private EcoreStandAlone INSTANCE = null;
     private ResourceSet resourceSet;
     public LoadXMIModel loadXMIModel = LoadXMIModel.getInstance();
+    private final Config configObj = Config.getInstance(null);
 
     private EcoreStandAlone() {
 
@@ -32,8 +34,9 @@ public class EcoreStandAlone {
     }
 
 
-    void init(String requiredEcoreDirectoryPath) throws Exception {
+    void init() throws Exception {
         System.out.println("Init ecore standalone");
+        String requiredEcoreDirectoryPath = this.configObj.getEcoreRequiredFilesFolder();
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
         EcorePackage.eINSTANCE.eClass();
         this.resourceSet = new ResourceSetImpl();

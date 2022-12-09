@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="org.osate.standalone.model.LoadXMIModel" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.osate.standalone.model.Main" />
+    <module name="discovery.arch.model" />
+    <option name="PROGRAM_PARAMETERS" value="src/main/java/org/osate/standalone/model/example_models/ClientServer.aaxl2" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.osate.standalone.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

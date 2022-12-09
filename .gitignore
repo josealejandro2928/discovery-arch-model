@@ -18,5 +18,12 @@ buildNumber.properties
 .classpath
 .aadlbin
 .Drivers.*
-output-processing
+
 .fuse*
+models/output-processing
+models/legends.csv
+models/files-found.txt
+models/.files-found.txt
+models/results.csv
+models/.cache.txt
+models/github

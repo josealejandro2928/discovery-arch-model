@@ -1,5 +1,7 @@
 package org.process.models.xmi;
 
+import org.discover.arch.model.Config;
+
 import java.nio.file.Paths;
 
 public class Main {
@@ -7,19 +9,23 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("Running ecore processing");
+        if (args.length > 0) {
+            configPath = args[0];
+        }
         try {
             Config config = Config.getInstance(configPath);
+            if (config == null)
+                throw new Exception("The config object cannot be null");
             EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
             EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
             EolRunner eolRunner = EolRunner.getInstance();
-            if (config == null)
-                throw new Exception("The config object cannot be null");
-            ecoreStandAlone.init(config.ecoreRequiredFilesFolder);
-            ecoreModelHandler.setRootPathFolder(Paths.get(config.rootPath, config.outputFolderName, "xmi").toString());
+            ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
-            ecoreModelHandler.processModels(ecoreStandAlone, eolRunner);
+            config.loadJSONFilesGeneratedByDiscoveringPhase();
+            ecoreModelHandler.processModels(eolRunner);
+            ecoreModelHandler.generateCSVFileFromProcessedModels("results");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
 //        try {
