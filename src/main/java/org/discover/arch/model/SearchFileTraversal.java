@@ -1,7 +1,5 @@
 package org.discover.arch.model;
 
-import com.google.inject.Inject;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

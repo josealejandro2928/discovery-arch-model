@@ -1,7 +1,5 @@
 package org.osate.standalone.model;
 
-import java.io.IOException;
-
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;

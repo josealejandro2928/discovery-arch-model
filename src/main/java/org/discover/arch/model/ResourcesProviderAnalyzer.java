@@ -1,16 +1,14 @@
 package org.discover.arch.model;
 
-import com.google.inject.Inject;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
 
 public class ResourcesProviderAnalyzer {
     private List<String> fileResourcePaths;
-    private List<String> externalResourcePaths;
+    private final List<String> externalResourcePaths;
     Config configObj = Config.getInstance(null);
-    Map<String, ExternalConnector> externalConnectorMap =  new HashMap<>();
+    Map<String, ExternalConnector> externalConnectorMap = new HashMap<>();
 
 
     ResourcesProviderAnalyzer() throws Exception {
@@ -38,16 +36,14 @@ public class ResourcesProviderAnalyzer {
         return true;
     }
 
-    private boolean validateExternalPaths() throws Exception {
+    private void validateExternalPaths() {
         System.out.println("***********************************************************************************************");
         System.out.println("ANALYZING THE EXTERNAL PATHS THIS MAY TAKE A BIT LONGER, DEPENDS OF THE CACHE TIME CONFIGURATION");
         int delayCache = this.configObj.timeCacheForPollingFromExternalResources;
 
         for (String p : this.externalResourcePaths) {
             Map.Entry<String, ExternalConnector> entrySet = this.externalConnectorMap.entrySet()
-                    .stream().filter((Map.Entry<String, ExternalConnector> entry) -> {
-                        return entry.getValue().isValidPath(p);
-                    }).findAny().orElse(null);
+                    .stream().filter((Map.Entry<String, ExternalConnector> entry) -> entry.getValue().isValidPath(p)).findAny().orElse(null);
             if (entrySet == null)
                 System.out.println("Not found connector to external result : " + p);
             else {
@@ -66,7 +62,6 @@ public class ResourcesProviderAnalyzer {
         }
         System.out.println("EXTERNAL PATHS SUCCESSFULLY SYNCHRONIZED TO THE PROJECT");
         System.out.println("***********************************************************************************************");
-        return true;
     }
 
     public List<String> getExternalResourcePaths() {

@@ -1,6 +1,5 @@
 package org.discover.arch.model;
 
-import com.google.inject.Inject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.osate.standalone.model.RawModelLoader;
@@ -8,7 +7,6 @@ import org.osate.standalone.model.LoadAADLModel;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

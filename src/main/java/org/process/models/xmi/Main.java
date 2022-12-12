@@ -2,8 +2,6 @@ package org.process.models.xmi;
 
 import org.discover.arch.model.Config;
 
-import java.nio.file.Paths;
-
 public class Main {
     static String configPath = "./config.json";
 

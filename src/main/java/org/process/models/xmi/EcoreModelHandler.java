@@ -3,8 +3,6 @@ package org.process.models.xmi;
 import com.opencsv.CSVWriter;
 import org.discover.arch.model.Config;
 import org.discover.arch.model.SearchFileTraversal;
-import org.eclipse.emf.ecore.resource.Resource;
-
 
 import java.io.File;
 import java.io.FileWriter;
@@ -100,7 +98,7 @@ public class EcoreModelHandler {
             String[] header = {"id", "model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design", "num_errors",
                     "sys_name", "num_comp", "num_conn", "size", "udy",
-                    "no_hardware_comp","no_sys_comp", "no_software_comp", "no_data_comp"};
+                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp"};
             writer.writeNext(header);
             for (Map elementData : dataSource) {
                 String[] row = new String[header.length];

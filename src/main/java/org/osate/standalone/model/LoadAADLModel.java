@@ -1,6 +1,5 @@
 package org.osate.standalone.model;
 
-import com.google.common.collect.BoundType;
 import com.google.inject.Injector;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -24,7 +23,6 @@ import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
