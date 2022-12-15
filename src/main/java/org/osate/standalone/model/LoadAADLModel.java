@@ -46,7 +46,6 @@ public class LoadAADLModel implements RawModelLoader {
     public Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
-        List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
         String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
@@ -79,35 +78,47 @@ public class LoadAADLModel implements RawModelLoader {
             if (contents.size() == 0) {
                 throw new Exception("This model cannot be loaded, it must be corrupted");
             }
+
+            if (!(contents.get(0) instanceof AadlPackage))
+                return null;
             final AadlPackage aadlPackage = (AadlPackage) contents.get(0);
             outputSchema.modelName = aadlPackage.getFullName();
             List<SystemImplementation> systemImplementations = new ArrayList<>();
-            if (verbose)
+            if (verbose) {
                 System.out.println("Looking for only system implementation models...");
+            }
             for (final Classifier classifier : aadlPackage.getPublicSection().getOwnedClassifiers()) {
                 if (classifier instanceof SystemImplementationImpl) {
                     systemImplementations.add((SystemImplementation) classifier);
                 }
             }
 
+            List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
             for (SystemImplementation systemImpl : systemImplementations) {
                 OutputLoadedModelSchema output = new OutputLoadedModelSchema(outputSchema);
                 try {
                     final SystemInstance systemInstance = InstantiateModel.instantiate(systemImpl);
                     output.isSavedTheModel = true;
-                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, parentDirectoryName, id);
+                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, output.modelName, id);
                     resultOutput.add(output);
                 } catch (final Exception e) {
+                    output.errors.add(e.getMessage());
                     output.isSavedTheModel = false;
                     output.isParsingSucceeded = false;
-                    e.printStackTrace();
-                    throw new Exception("Error during instantiation " + e.getMessage());
+                    resultOutput.add(output);
+                    System.out.println("\033[0;31m" + "Error instantiating the model: " + output.modelName +
+                            " which system instance is: " + systemImpl.getName() + "\033[0m");
                 }
+            }
+            if (resultOutput.isEmpty()) {
+                resultOutput.add(outputSchema);
             }
             return resultOutput;
         } catch (final Exception e) {
             outputSchema.errors.add(e.getMessage());
             outputSchema.isParsingSucceeded = false;
+
+            System.out.println("\033[0;31m" + "Error: " + e.getMessage() + "\033[0m");
             if (verbose)
                 System.out.print(outputSchema);
             return outputSchema;

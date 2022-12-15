@@ -127,6 +127,8 @@ public class ArchModelConverter {
         String extension = SearchFileTraversal.getExtension(pathFile);
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
         Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
+        if (data == null)
+            return;
         if (data instanceof Iterable) {
             ((List<RawModelLoader.OutputLoadedModelSchema>) data).stream().forEach((RawModelLoader.OutputLoadedModelSchema x) -> {
                 Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) x).toMap();

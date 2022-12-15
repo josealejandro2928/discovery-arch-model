@@ -13,19 +13,19 @@ import java.util.Queue;
 import java.util.Set;
 
 public class CrossReferenceResolver {
-    static int UP_LEVELS = 1;
+    static int UP_LEVELS = 2;
 
     static Map<String, Object> resolve(String path, String extension) {
         List<String> foundFiles = new ArrayList<>(Arrays.asList(path));
         File file = new File(path);
         String parentDirectory = null;
         String parentName = null;
-        int levelsUp = 0;
         Map<String, Object> dataOutput = new HashMap<>();
         if (extension == null) {
             extension = getExtension(path);
         }
 
+        int levelsUp = 0;
         while (levelsUp < UP_LEVELS && file.getParent() != null) {
             file = new File(file.getParent());
             levelsUp++;
