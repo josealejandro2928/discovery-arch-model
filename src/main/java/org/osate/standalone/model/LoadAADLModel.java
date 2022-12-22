@@ -20,9 +20,11 @@ import org.osate.aadl2.instance.SystemInstance;
 import org.osate.aadl2.instantiation.InstantiateModel;
 import org.osate.aadl2.util.Aadl2ResourceFactoryImpl;
 import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
+import org.discover.arch.model.OutputLoadedModelSchema;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -125,24 +127,19 @@ public class LoadAADLModel implements RawModelLoader {
         }
     }
 
-    private List<String> validateModel(Resource[] resources) {
+    public List<Object> validateModel(Resource[] resources) {
         List<Issue> issues = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
         for (final Resource resource : resources) {
             IResourceValidator validator = ((XtextResource) resource).getResourceServiceProvider()
                     .getResourceValidator();
             try {
-                issues = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
+                issues = validator.validate(resource, CheckMode.NORMAL_AND_FAST, CancelIndicator.NullImpl);
             } catch (Exception e) {
                 System.err.println("****************************** " + e);
             }
-
-            for (int i = 0; i < issues.size() && i < 10; i++) {
-                Issue issue = issues.get(i);
-                errors.add(issue.getMessage());
-            }
         }
-        return errors;
+        List<Object> error = new ArrayList<>(issues);
+        return error.subList(0, Math.min(10, error.size()));
     }
 
     private String saveModelToXMI(SystemInstance systemInstance, XtextResourceSet rs, String pathXMLFile, String parentName, String id)

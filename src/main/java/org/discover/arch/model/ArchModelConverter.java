@@ -1,5 +1,7 @@
 package org.discover.arch.model;
 
+import com.opencsv.CSVWriter;
+import org.eclipse.xtext.validation.Issue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.osate.standalone.model.RawModelLoader;
@@ -14,30 +16,19 @@ import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
+
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArchModelConverter {
     String rootPath;
     List<String> dataModelFiles = new ArrayList<>();
-    List<String> extensions = new ArrayList<>();
+    List<String> extensions;
     String folderOutputName;
-    HashMap<String, String> converterModelJarPlugginsMap = new HashMap<>();
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
-    JarExecutor jarExe = new JarExecutor();
     JSONArray logsOutput = new JSONArray();
+    List<OutputLoadedModelSchema> conversionOutput = new ArrayList<>();
     Config configObj = Config.getInstance(null);
-
-    ArchModelConverter(String rootPath) {
-        this.rootPath = rootPath;
-        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
-    }
-
-    ArchModelConverter(String rootPath, String[] extensions, String outputFolderName) {
-        this.rootPath = rootPath;
-        this.extensions = Arrays.asList(extensions);
-        this.folderOutputName = outputFolderName;
-        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
-    }
 
     ArchModelConverter() {
         this.rootPath = this.configObj.getRootPath();
@@ -79,8 +70,6 @@ public class ArchModelConverter {
     }
 
     public void initProcessing() throws Exception {
-//        if (this.dataModelFiles.size() == 0)
-//            throw new Exception("There is not filesModelPath for processing");
         System.out.println("COPYING TO FOLDERS THE FILES...");
         this.copyFoundedFiles();
         System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
@@ -94,6 +83,9 @@ public class ArchModelConverter {
         System.out.println("LOGGING THE CONVERSION FILE .json...");
         this.loggingConvertingResult();
         System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
+        System.out.println("CREATING CSV OF ERRORS...");
+        this.createCSVOfError();
+        System.out.println("CREATING CSV OF ERRORS... COMPLETED");
     }
 
 
@@ -130,20 +122,23 @@ public class ArchModelConverter {
         if (data == null)
             return;
         if (data instanceof Iterable) {
-            ((List<RawModelLoader.OutputLoadedModelSchema>) data).stream().forEach((RawModelLoader.OutputLoadedModelSchema x) -> {
-                Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) x).toMap();
+            ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema x) -> {
+                Map<String, Object> dataOutMap = x.toMap();
                 if (verbose)
                     System.out.println(dataOutMap);
                 dataOutMap.put("extension", extension);
                 dataOutMap.put("id", id);
+                conversionOutput.add(x);
                 this.logsOutput.put(new JSONObject(dataOutMap));
             });
         } else {
-            Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) data).toMap();
-            if (verbose)
+            Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
+            if (verbose) {
                 System.out.println(dataOutMap);
+            }
             dataOutMap.put("extension", extension);
             dataOutMap.put("id", id);
+            conversionOutput.add((OutputLoadedModelSchema) data);
             this.logsOutput.put(new JSONObject(dataOutMap));
         }
 
@@ -203,5 +198,48 @@ public class ArchModelConverter {
         reports.get("general").put("totalFilesWithErrors", this.filterOutputResults(this.logsOutput,
                 (JSONObject el) -> el.get("isParsingSucceeded").equals(false)).length());
         return reports;
+    }
+
+    void createCSVOfError() {
+        try {
+            File file = Paths.get(this.configObj.getRootPath(), this.configObj.getOutputFolderName(), "error-info.csv").toFile();
+            FileWriter outputFile = new FileWriter(file);
+            CSVWriter writer = new CSVWriter(outputFile);
+            String[] header = {"model_name", "src_path", "is_parsed", "ref_resolving_error", "syntax_error", "error_codes"};
+            writer.writeNext(header);
+            for (OutputLoadedModelSchema element : this.conversionOutput) {
+                String[] row = new String[header.length];
+                row[0] = element.modelName;
+                row[1] = element.pathAADLFile;
+                row[2] = element.isParsingSucceeded + "";
+                int ref_resolving_error = 0;
+                int syntaxError = 0;
+                Set<String> errorCodes = new HashSet<>();
+                for (Object error : element.errors) {
+                    String errMessage = error.toString();
+                    if (errMessage.contains("Couldn't resolve reference")) {
+                        ref_resolving_error++;
+                    }
+                    if (error instanceof Issue) {
+                        String code = ((Issue) error).getCode();
+                        if (code != null)
+                            errorCodes.add(code);
+                        if (((Issue) error).isSyntaxError())
+                            syntaxError++;
+                    } else {
+                        syntaxError++;
+                    }
+                }
+                row[3] = ref_resolving_error + "";
+                row[4] = syntaxError + "";
+                row[5] = errorCodes.toString();
+                writer.writeNext(row);
+            }
+            writer.close();
+            System.out.println("GENERATED CSV OF ERROR REPORTS SUCCESSFULLY: " + file.getAbsolutePath());
+        } catch (Exception error) {
+            System.out.println("Error creating a csv file");
+            error.printStackTrace();
+        }
     }
 }
