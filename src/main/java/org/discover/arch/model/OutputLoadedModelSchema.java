@@ -31,6 +31,15 @@ public class OutputLoadedModelSchema {
         this.isSavedTheModel = false;
     }
 
+    public List<Object> getErrors(boolean filtered) {
+        return this.errors.stream().filter((Object x) -> {
+            if (!filtered)
+                return true;
+            String msg = x.toString();
+            return !msg.contains("Error executing EValidator");
+        }).toList();
+    }
+
     @Override
     public String toString() {
         return "modelName: " + this.modelName + "\n" +
@@ -43,7 +52,7 @@ public class OutputLoadedModelSchema {
 
     public Map<String, Object> toMap() {
         Map<String, Object> data = new HashMap<>();
-        List<String> x = this.errors.stream().map(Object::toString).toList();
+        List<String> x = this.getErrors(true).stream().map(Object::toString).toList();
         data.put("modelName", this.modelName);
         data.put("isParsingSucceeded", this.isParsingSucceeded);
         data.put("isSavedTheModel", this.isSavedTheModel);

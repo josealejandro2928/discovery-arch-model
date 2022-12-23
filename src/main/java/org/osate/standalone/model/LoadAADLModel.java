@@ -23,13 +23,12 @@ import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
 import org.discover.arch.model.OutputLoadedModelSchema;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class LoadAADLModel implements RawModelLoader {
     private static LoadAADLModel INSTANCE = null;
+    private String PREDECLARATED_PROPERTY_SET = Paths.get("aadl", "Predeclared_Property_Sets").toAbsolutePath().toString();
     Injector injector;
 
     private LoadAADLModel() {
@@ -66,6 +65,9 @@ public class LoadAADLModel implements RawModelLoader {
             for (int i = 0; i < pathToModelsFiles.size(); i++) {
                 resources[i] = rs.getResource(URI.createURI(pathToModelsFiles.get(i)), true);
             }
+//            ////////LOADING PREDECLARATED AADL DEFINITIONS///////////
+//            resources = this.loadPredeclaredPropertySetsAADL(resources, rs);
+//            /////////////////////////////////////////////////
             for (Resource resource : resources) {
                 resource.load(null);
             }
@@ -158,6 +160,18 @@ public class LoadAADLModel implements RawModelLoader {
         xmiResource.getContents().add(systemInstance);
         xmiResource.save(null);
         return instanceName;
+    }
+
+    private Resource[] loadPredeclaredPropertySetsAADL(Resource[] resources, XtextResourceSet rs) {
+        List<Resource> tempResources = new ArrayList<>();
+        Arrays.stream(resources).forEach(tempResources::add);
+        File file = new File(this.PREDECLARATED_PROPERTY_SET);
+        for (File fileChild : Objects.requireNonNull(file.listFiles())) {
+            String pathTo_AADL_Resource = fileChild.getAbsolutePath().toString();
+            tempResources.add(rs.getResource(URI.createURI(pathTo_AADL_Resource), true));
+        }
+        Resource[] newArr = new Resource[tempResources.size()];
+        return tempResources.toArray(newArr);
     }
 
 }

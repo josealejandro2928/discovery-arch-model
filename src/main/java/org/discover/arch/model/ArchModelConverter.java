@@ -215,7 +215,7 @@ public class ArchModelConverter {
                 int ref_resolving_error = 0;
                 int syntaxError = 0;
                 Set<String> errorCodes = new HashSet<>();
-                for (Object error : element.errors) {
+                for (Object error : element.getErrors(true)) {
                     String errMessage = error.toString();
                     if (errMessage.contains("Couldn't resolve reference")) {
                         ref_resolving_error++;
