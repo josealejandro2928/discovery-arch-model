@@ -64,19 +64,20 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(EolRunner eolRunner) throws Exception {
+    void processModels(QueryModel queryModelInst) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         for (String modelUri : this.uriModels) {
             try {
                 try {
                     System.out.println("------------------------------------------------------------------");
                     System.out.println("URI: " + modelUri);
-                    Map<String, Object> data = (Map<String, Object>) eolRunner.run("main", modelUri);
+                    Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
                     data.put("uri", modelUri);
                     this.processedDataFromModel.put(modelUri, data);
                     System.out.println("------------------------------------------------------------------");
                 } catch (Exception e) {
-                    System.out.println("Error running eol: " + e.getMessage());
+                    System.out.println("Error performing query over the model: " + e.getMessage());
+                    e.printStackTrace();
                 }
             } catch (Exception e) {
                 System.out.println("Error getting the models from URI: " + e.getMessage());

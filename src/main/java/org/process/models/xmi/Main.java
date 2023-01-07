@@ -17,21 +17,16 @@ public class Main {
             EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
             EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
             EolRunner eolRunner = EolRunner.getInstance();
+            JavaQueryAADLModelInst javaQueryAADLModelInst = JavaQueryAADLModelInst.getInstance();
             ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
             config.loadJSONFilesGeneratedByDiscoveringPhase();
-            ecoreModelHandler.processModels(eolRunner);
+//            ecoreModelHandler.processModels(eolRunner);
+            ecoreModelHandler.processModels(javaQueryAADLModelInst);
             ecoreModelHandler.generateCSVFileFromProcessedModels("results");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
-//        try {
-//            EolRunner eolRunner = EolRunner.getInstance();
-//            System.out.println(eolRunner.runExample());
-//        } catch (Exception e) {
-//            System.out.println("Error: " + e.getMessage());
-//            e.printStackTrace();
-//        }
     }
 }
