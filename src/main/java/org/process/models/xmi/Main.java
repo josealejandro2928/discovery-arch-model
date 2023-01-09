@@ -21,8 +21,8 @@ public class Main {
             ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
             config.loadJSONFilesGeneratedByDiscoveringPhase();
-//            ecoreModelHandler.processModels(eolRunner);
-            ecoreModelHandler.processModels(javaQueryAADLModelInst);
+            ecoreModelHandler.processModels(eolRunner);
+//            ecoreModelHandler.processModels(javaQueryAADLModelInst);
             ecoreModelHandler.generateCSVFileFromProcessedModels("results");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());

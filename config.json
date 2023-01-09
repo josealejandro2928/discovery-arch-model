@@ -1,18 +1,14 @@
 {
-  "archivesForSearching": [
-    "./models/raw-models"
-  ],
+  "archivesForSearching": ["./models/raw-models"],
   "avoidFileNames": [
     ".git",
     ".gitignore",
     ".project"
   ],
   "timeCacheForDiscoveringSearchOverFilesInSeconds": 60,
-  "timeCacheForPollingFromExternalResources": 300,
-  "extensionsForSearching": [
-    "aadl"
-  ],
+  "extensionsForSearching": ["aadl"],
   "outputFolderName": "output-processing",
+  "timeCacheForPollingFromExternalResources": 300,
   "ecoreRequiredFilesFolder": "./ecore",
   "rootPath": "./models",
   "externalResources": []
