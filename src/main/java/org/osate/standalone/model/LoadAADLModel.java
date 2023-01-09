@@ -49,7 +49,6 @@ public class LoadAADLModel implements RawModelLoader {
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
-        String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
         Resource[] resources = new Resource[pathToModelsFiles.size()];
         File fileAadl = new File(pathAADLFile);
         File fileXML = new File(pathXMLFile);
@@ -80,7 +79,7 @@ public class LoadAADLModel implements RawModelLoader {
             ////////////////////////////////////////////////////////////
             List<EObject> contents = rsrc.getContents();
             if (contents.size() == 0) {
-                throw new Exception("This model cannot be loaded, it must be corrupted");
+                throw new Exception("This model: " + pathAADLFile + " cannot be loaded, it must be corrupted");
             }
 
             if (!(contents.get(0) instanceof AadlPackage))

@@ -11,9 +11,7 @@ import org.osate.aadl2.instance.SystemInstance;
 import org.osate.aadl2.instance.impl.SystemInstanceImpl;
 import org.osate.standalone.model.LoadXMIModel;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class JavaQueryAADLModelInst implements QueryModel {
     private static JavaQueryAADLModelInst INSTANCE = null;
@@ -115,5 +113,27 @@ public class JavaQueryAADLModelInst implements QueryModel {
             udy = c / (n * (n - 1));
         }
         dataOutput.put(UDY, udy);
+    }
+
+    /////////////////////////////////////////////////// IMPORTANT FUNCTIONS FOR PERFORMING QUERIES /////////////////////////////////////////
+    private List<EObject> getComponents(Resource resource) {
+        List<EObject> result = new ArrayList<>();
+        TreeIterator<EObject> treeEObjectIterator = resource.getAllContents();
+        while (treeEObjectIterator.hasNext()) {
+            EObject nodeElement = treeEObjectIterator.next();
+            if (nodeElement instanceof ComponentInstance)
+                result.add(nodeElement);
+        }
+        return result;
+    }
+    private List<EObject> getConnections(Resource resource) {
+        List<EObject> result = new ArrayList<>();
+        TreeIterator<EObject> treeEObjectIterator = resource.getAllContents();
+        while (treeEObjectIterator.hasNext()) {
+            EObject nodeElement = treeEObjectIterator.next();
+            if (nodeElement instanceof ConnectionInstance)
+                result.add(nodeElement);
+        }
+        return result;
     }
 }

@@ -52,13 +52,18 @@ public class OutputLoadedModelSchema {
 
     public Map<String, Object> toMap() {
         Map<String, Object> data = new HashMap<>();
-        List<String> x = this.getErrors(true).stream().map(Object::toString).toList();
+        List<String> listErrors = this.getErrors(true).stream().map(Object::toString).toList();
+        listErrors = listErrors.stream().map((String e) -> {
+            if (e.length() > 255)
+                return e.substring(0, 255) + "...";
+            return e;
+        }).toList();
         data.put("modelName", this.modelName);
         data.put("isParsingSucceeded", this.isParsingSucceeded);
         data.put("isSavedTheModel", this.isSavedTheModel);
         data.put("pathAADLFile", this.pathAADLFile);
         data.put("pathXMLFile", this.pathXMLFile);
-        data.put("errors", x);
+        data.put("errors", listErrors);
         return data;
     }
 }
