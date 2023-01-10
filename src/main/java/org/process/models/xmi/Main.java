@@ -18,7 +18,7 @@ public class Main {
             EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
             EolRunner eolRunner = EolRunner.getInstance();
             JavaQueryAADLModelInst javaQueryAADLModelInst = JavaQueryAADLModelInst.getInstance();
-            ecoreStandAlone.init();
+//            ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
             config.loadJSONFilesGeneratedByDiscoveringPhase();
             ecoreModelHandler.processModels(eolRunner);
