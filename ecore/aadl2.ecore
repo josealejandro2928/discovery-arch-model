@@ -1232,6 +1232,7 @@
     <eLiterals name="in"/>
     <eLiterals name="out" value="1"/>
     <eLiterals name="inOut" value="2"/>
+    <eLiterals name="in out" value="3"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="FeatureGroupConnectionEnd" abstract="true"
       eSuperTypes="#//ConnectionEnd">
