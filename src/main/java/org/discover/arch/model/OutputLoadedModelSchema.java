@@ -33,7 +33,7 @@ public class OutputLoadedModelSchema {
 
     public List<Object> getErrors(boolean filtered) {
         return this.errors.stream().filter((Object x) -> {
-            if (!filtered)
+            if (!filtered || x == null)
                 return true;
             String msg = x.toString();
             return !msg.contains("Error executing EValidator");

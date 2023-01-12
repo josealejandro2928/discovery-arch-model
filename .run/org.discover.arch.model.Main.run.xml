@@ -2,7 +2,7 @@
   <configuration default="false" name="org.discover.arch.model.Main" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.discover.arch.model.Main" />
     <module name="discovery.arch.model" />
-    <option name="PROGRAM_PARAMETERS" value="./config.json" />
+    <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../EXAMPLE_ROOT_DIRECTORY_MODELS/config.json" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.example.*" />

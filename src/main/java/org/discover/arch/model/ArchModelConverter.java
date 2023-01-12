@@ -103,19 +103,26 @@ public class ArchModelConverter {
 
     private void convertModels(boolean verbose) throws Exception {
         int id = 0;
+        int MAX_BATCH_FOR_GC = 20;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
             if (this.converterModelClassMap.containsKey(extension)) {
-                this.convertModelsUsingClass(pathFile, outPathXMI, id + "", verbose);
+                if (verbose)
+                    System.out.println(id + "/" + this.dataModelFiles.size() + " Analyzing path: " + pathFile);
+                this.convertModelsUsingClass(pathFile, outPathXMI, id + "");
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
+            }
+            if (id % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
+                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
+                System.gc();
             }
             id++;
         }
     }
 
-    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, boolean verbose) throws Exception {
+    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
         String extension = SearchFileTraversal.getExtension(pathFile);
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
         Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
@@ -124,8 +131,6 @@ public class ArchModelConverter {
         if (data instanceof Iterable) {
             ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema x) -> {
                 Map<String, Object> dataOutMap = x.toMap();
-                if (verbose)
-                    System.out.println(dataOutMap);
                 dataOutMap.put("extension", extension);
                 dataOutMap.put("id", id);
                 conversionOutput.add(x);
@@ -133,15 +138,12 @@ public class ArchModelConverter {
             });
         } else {
             Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
-            if (verbose) {
-                System.out.println(dataOutMap);
-            }
             dataOutMap.put("extension", extension);
             dataOutMap.put("id", id);
             conversionOutput.add((OutputLoadedModelSchema) data);
             this.logsOutput.put(new JSONObject(dataOutMap));
         }
-
+        data = null;
     }
 
     private void loggingConvertingResult() throws Exception {
