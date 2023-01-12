@@ -3,8 +3,6 @@ package org.process.models.xmi;
 import com.opencsv.CSVWriter;
 import org.discover.arch.model.Config;
 import org.discover.arch.model.SearchFileTraversal;
-import org.eclipse.emf.ecore.resource.Resource;
-
 
 import java.io.File;
 import java.io.FileWriter;
@@ -66,19 +64,20 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(EolRunner eolRunner) throws Exception {
+    void processModels(QueryModel queryModelInst) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         for (String modelUri : this.uriModels) {
             try {
                 try {
                     System.out.println("------------------------------------------------------------------");
                     System.out.println("URI: " + modelUri);
-                    Map<String, Object> data = (Map<String, Object>) eolRunner.run("main", modelUri);
+                    Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
                     data.put("uri", modelUri);
                     this.processedDataFromModel.put(modelUri, data);
                     System.out.println("------------------------------------------------------------------");
                 } catch (Exception e) {
-                    System.out.println("Error running eol: " + e.getMessage());
+                    System.out.println("Error performing query over the model: " + e.getMessage());
+                    e.printStackTrace();
                 }
             } catch (Exception e) {
                 System.out.println("Error getting the models from URI: " + e.getMessage());
@@ -96,11 +95,11 @@ public class EcoreModelHandler {
             File file = Paths.get(this.configObj.getRootPath(), name + ".csv").toFile();
             FileWriter outputFile = new FileWriter(file);
             CSVWriter writer = new CSVWriter(outputFile);
-            List<Map<String, Object>> dataSource = this.createDataSource();
-            String[] header = {"id", "model_name", "src_path", "conv_path",
-                    "src_ext", "is_parsed", "is_sys_design", "num_errors",
+            String[] header = {"model_name", "src_path", "conv_path",
+                    "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "udy",
-                    "no_hardware_comp","no_sys_comp", "no_software_comp", "no_data_comp"};
+                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp"};
+            List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map elementData : dataSource) {
                 String[] row = new String[header.length];
@@ -123,14 +122,12 @@ public class EcoreModelHandler {
 
     List<Map<String, Object>> createDataSource() {
         /*
-        { id:String
-          model_name:String
+        { model_name:String
           src_path:String
           conv_path:String
           src_ext:String
           is_parsed:boolean
           is_sys_design:boolean
-          num_errors:int
           sys_name:String
           num_comp:int
           num_conn:int
@@ -146,15 +143,12 @@ public class EcoreModelHandler {
         dataSource = conversionLogs.stream().map(x -> {
             String uriToConvertedModel = (String) x.get("pathXMLFile");
             Map<String, Object> preData = new HashMap<>();
-            preData.put("id", x.get("id"));
             preData.put("model_name", x.get("modelName"));
             preData.put("src_path", x.get("pathAADLFile"));
             preData.put("conv_path", uriToConvertedModel);
             preData.put("src_ext", x.get("extension"));
             preData.put("is_parsed", x.get("isParsingSucceeded"));
-            List<String> errors = (List<String>) (x.get("errors"));
             preData.put("is_sys_design", x.get("isSavedTheModel"));
-            preData.put("num_errors", errors.size());
             preData.put("sys_name", null);
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
@@ -187,14 +181,12 @@ public class EcoreModelHandler {
             FileWriter outputFile = new FileWriter(file);
             CSVWriter writer = new CSVWriter(outputFile);
             Map<String, String> dataSource = new HashMap<>();
-            dataSource.put("id", "The index in the source was found in the file system");
             dataSource.put("model_name", "The name of the model resulting of parsing the file .aadl");
             dataSource.put("src_path", "The global path where the model[source] was found in the file system");
             dataSource.put("conv_path", "The global path of the instantiated model converted to XML");
             dataSource.put("src_ext", "The extension of the model[source] ex: .aadl ");
             dataSource.put("is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken");
             dataSource.put("is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model");
-            dataSource.put("num_errors", "A maximum of 10 error resulting of the validation provided by OSATE api over and aadl model");
             dataSource.put("sys_name", "The name of the SystemInstance model found");
             dataSource.put("num_comp", "The number of component of the model: ComponentInstance found");
             dataSource.put("num_conn", "The number of connections of the model: ConnectionInstance found");

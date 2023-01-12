@@ -8,7 +8,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class EolRunner {
+public class EolRunner implements QueryModel {
     private static EolRunner INSTANCE = null;
 
     private EolRunner() {
@@ -21,17 +21,29 @@ public class EolRunner {
         return INSTANCE;
     }
 
+    /**
+     * @param eolScript: Name of the .eol script
+     * @param modelPath: Path of the aaxl2 instance model
+     * @return Map that contains the result of several metrics computed over the model
+     * @throws Exception
+     */
+    @Override
     public Object run(String eolScript, String modelPath) throws Exception {
         if (eolScript == null)
             eolScript = "main";
         EolModule module = new EolModule();
-        Path rootPath = Paths.get("", "scripts", "eol").toAbsolutePath();
+        Path rootPath = Paths.get("scripts", "eol").toAbsolutePath();
         String eolPath = rootPath.resolve(eolScript + ".eol").toString();
-        String metaModelPath = Paths.get("ecore", "aadl2_instance.ecore").toAbsolutePath().toString();
+        String metaModelPath = Paths.get("ecore", "aadl2_inst.ecore").toAbsolutePath().toString();
         EmfModel model = createEmfModel("ModelImpl", modelPath, metaModelPath, true, false);
         module.parse(new File(eolPath));
         module.getContext().getModelRepository().addModel(model);
         return module.execute();
+    }
+
+    @Override
+    public Object run(String modelPath) throws Exception {
+        return this.run("main", modelPath);
     }
 
     public Object runExample() throws Exception {

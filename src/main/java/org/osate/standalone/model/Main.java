@@ -1,5 +1,6 @@
 package org.osate.standalone.model;
 
+import org.discover.arch.model.OutputLoadedModelSchema;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -32,7 +33,11 @@ public class Main {
                 System.out.println(URI_AADL_MODEL);
                 Object outputSchema = loadAADLModel.loadModel(URI_AADL_MODEL,
                         "src/main/java/org/osate/standalone/model/example_models/", "5", false);
-                System.out.println(outputSchema);
+                if (outputSchema instanceof Iterable<?>) {
+                    System.out.println(outputSchema);
+                } else {
+                    System.out.println(((OutputLoadedModelSchema) outputSchema).toMap());
+                }
             }
 
         } catch (Exception e) {

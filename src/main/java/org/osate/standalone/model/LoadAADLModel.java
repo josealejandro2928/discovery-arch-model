@@ -1,6 +1,5 @@
 package org.osate.standalone.model;
 
-import com.google.common.collect.BoundType;
 import com.google.inject.Injector;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -21,12 +20,10 @@ import org.osate.aadl2.instance.SystemInstance;
 import org.osate.aadl2.instantiation.InstantiateModel;
 import org.osate.aadl2.util.Aadl2ResourceFactoryImpl;
 import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
+import org.discover.arch.model.OutputLoadedModelSchema;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LoadAADLModel implements RawModelLoader {
     private static LoadAADLModel INSTANCE = null;
@@ -48,13 +45,13 @@ public class LoadAADLModel implements RawModelLoader {
     public Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
         OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
-        List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
-        String parentDirectoryName = (String) crossReferenceResolverOut.get("parentName");
-        Resource[] resources = new Resource[pathToModelsFiles.size()];
         File fileAadl = new File(pathAADLFile);
         File fileXML = new File(pathXMLFile);
+        List<EObject> contents;
+        AadlPackage aadlPackage;
+        List<SystemImplementation> systemImplementations;
 
         if (!fileAadl.exists()) {
             throw new Exception("The addl file: " + pathAADLFile + " does not exits");
@@ -64,76 +61,95 @@ public class LoadAADLModel implements RawModelLoader {
         }
 
         try {
-            for (int i = 0; i < pathToModelsFiles.size(); i++) {
-                resources[i] = rs.getResource(URI.createURI(pathToModelsFiles.get(i)), true);
+            for (String modelPaths : pathToModelsFiles) {
+                rs.getResource(URI.createURI(modelPaths), true);
             }
-            for (Resource resource : resources) {
+            for (Resource resource : rs.getResources()) {
                 resource.load(null);
             }
-            Resource rsrc = resources[0];
-            EcoreUtil.resolveAll(rsrc);
+            Resource resourceRoot = rs.getResources().get(0);
+            EcoreUtil.resolveAll(resourceRoot);
             ////////////// VALIDATE THE MODEL ///////////////////////////
             outputSchema.pathAADLFile = pathAADLFile;
             outputSchema.pathXMLFile = pathXMLFile;
-            outputSchema.errors = validateModel(new Resource[]{rsrc});
+            outputSchema.errors = validateModel(new Resource[]{resourceRoot});
             ////////////////////////////////////////////////////////////
-            List<EObject> contents = rsrc.getContents();
+            contents = resourceRoot.getContents();
             if (contents.size() == 0) {
-                throw new Exception("This model cannot be loaded, it must be corrupted");
+                throw new Exception("This model: " + pathAADLFile + " cannot be loaded, it must be corrupted");
             }
-            final AadlPackage aadlPackage = (AadlPackage) contents.get(0);
+
+            if (!(contents.get(0) instanceof AadlPackage))
+                return null;
+
+            aadlPackage = (AadlPackage) contents.get(0);
             outputSchema.modelName = aadlPackage.getFullName();
-            List<SystemImplementation> systemImplementations = new ArrayList<>();
-            if (verbose)
+            systemImplementations = new ArrayList<>();
+            if (verbose) {
                 System.out.println("Looking for only system implementation models...");
-            for (final Classifier classifier : aadlPackage.getPublicSection().getOwnedClassifiers()) {
+            }
+            for (Classifier classifier : aadlPackage.getPublicSection().getOwnedClassifiers()) {
                 if (classifier instanceof SystemImplementationImpl) {
                     systemImplementations.add((SystemImplementation) classifier);
                 }
             }
 
+            List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
             for (SystemImplementation systemImpl : systemImplementations) {
                 OutputLoadedModelSchema output = new OutputLoadedModelSchema(outputSchema);
+                SystemInstance systemInstance;
                 try {
-                    final SystemInstance systemInstance = InstantiateModel.instantiate(systemImpl);
+                    systemInstance = InstantiateModel.instantiate(systemImpl);
                     output.isSavedTheModel = true;
-                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, parentDirectoryName, id);
+                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, output.modelName, id);
                     resultOutput.add(output);
                 } catch (final Exception e) {
+                    output.errors.add(e.getMessage());
                     output.isSavedTheModel = false;
                     output.isParsingSucceeded = false;
-                    e.printStackTrace();
-                    throw new Exception("Error during instantiation " + e.getMessage());
+                    resultOutput.add(output);
+                    System.out.println("\033[0;31m" + "Error instantiating the model: " + output.modelName +
+                            " which system instance is: " + systemImpl.getName() + "\033[0m");
+                } finally {
+                    output = null;
+                    systemInstance = null;
                 }
             }
+            if (resultOutput.isEmpty()) {
+                resultOutput.add(outputSchema);
+            }
+
             return resultOutput;
         } catch (final Exception e) {
             outputSchema.errors.add(e.getMessage());
             outputSchema.isParsingSucceeded = false;
+            System.out.println("\033[0;31m" + "Error: " + e.getMessage() + "\033[0m");
             if (verbose)
                 System.out.print(outputSchema);
             return outputSchema;
+        } finally {
+            rs = null;
+            contents = null;
+            aadlPackage = null;
+            systemImplementations = null;
+            crossReferenceResolverOut = null;
         }
     }
 
-    private List<String> validateModel(Resource[] resources) {
+
+    public List<Object> validateModel(Resource[] resources) {
         List<Issue> issues = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
         for (final Resource resource : resources) {
             IResourceValidator validator = ((XtextResource) resource).getResourceServiceProvider()
                     .getResourceValidator();
             try {
-                issues = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
+                issues = validator.validate(resource, CheckMode.NORMAL_AND_FAST, CancelIndicator.NullImpl);
             } catch (Exception e) {
                 System.err.println("****************************** " + e);
             }
-
-            for (int i = 0; i < issues.size() && i < 10; i++) {
-                Issue issue = issues.get(i);
-                errors.add(issue.getMessage());
-            }
         }
-        return errors;
+        List<Object> error = new ArrayList<>(issues);
+        return error.subList(0, Math.min(10, error.size()));
     }
 
     private String saveModelToXMI(SystemInstance systemInstance, XtextResourceSet rs, String pathXMLFile, String parentName, String id)
@@ -151,6 +167,7 @@ public class LoadAADLModel implements RawModelLoader {
         Resource xmiResource = rs.createResource(URI.createURI(instanceName));
         xmiResource.getContents().add(systemInstance);
         xmiResource.save(null);
+        xmiResource = null;
         return instanceName;
     }
 

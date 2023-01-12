@@ -43,6 +43,7 @@ public class EcoreStandAlone {
         System.out.println("Loading the required .ecore modules (aadl2.ecore,aadl2_instance.ecore) and registering them");
         List<Resource> resources = new ArrayList<>();
         resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2.ecore").toString()), true));
+        resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2_inst.ecore").toString()), true));
         for (Resource resource : resources) {
             EObject eObject = resource.getContents().get(0);
             if (eObject instanceof EPackage ep) {

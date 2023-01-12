@@ -1,6 +1,7 @@
 package org.discover.arch.model;
 
-import com.google.inject.Inject;
+import com.opencsv.CSVWriter;
+import org.eclipse.xtext.validation.Issue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.osate.standalone.model.RawModelLoader;
@@ -8,7 +9,6 @@ import org.osate.standalone.model.LoadAADLModel;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,30 +16,19 @@ import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
+
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArchModelConverter {
     String rootPath;
     List<String> dataModelFiles = new ArrayList<>();
-    List<String> extensions = new ArrayList<>();
+    List<String> extensions;
     String folderOutputName;
-    HashMap<String, String> converterModelJarPlugginsMap = new HashMap<>();
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
-    JarExecutor jarExe = new JarExecutor();
     JSONArray logsOutput = new JSONArray();
+    List<OutputLoadedModelSchema> conversionOutput = new ArrayList<>();
     Config configObj = Config.getInstance(null);
-
-    ArchModelConverter(String rootPath) {
-        this.rootPath = rootPath;
-        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
-    }
-
-    ArchModelConverter(String rootPath, String[] extensions, String outputFolderName) {
-        this.rootPath = rootPath;
-        this.extensions = Arrays.asList(extensions);
-        this.folderOutputName = outputFolderName;
-        converterModelClassMap.put("aadl", LoadAADLModel.getInstance());
-    }
 
     ArchModelConverter() {
         this.rootPath = this.configObj.getRootPath();
@@ -81,8 +70,6 @@ public class ArchModelConverter {
     }
 
     public void initProcessing() throws Exception {
-//        if (this.dataModelFiles.size() == 0)
-//            throw new Exception("There is not filesModelPath for processing");
         System.out.println("COPYING TO FOLDERS THE FILES...");
         this.copyFoundedFiles();
         System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
@@ -96,6 +83,9 @@ public class ArchModelConverter {
         System.out.println("LOGGING THE CONVERSION FILE .json...");
         this.loggingConvertingResult();
         System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
+        System.out.println("CREATING CSV OF ERRORS...");
+        this.createCSVOfError();
+        System.out.println("CREATING CSV OF ERRORS... COMPLETED");
     }
 
 
@@ -113,40 +103,47 @@ public class ArchModelConverter {
 
     private void convertModels(boolean verbose) throws Exception {
         int id = 0;
+        int MAX_BATCH_FOR_GC = 20;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
             if (this.converterModelClassMap.containsKey(extension)) {
-                this.convertModelsUsingClass(pathFile, outPathXMI, id + "", verbose);
+                if (verbose)
+                    System.out.println(id + "/" + this.dataModelFiles.size() + " Analyzing path: " + pathFile);
+                this.convertModelsUsingClass(pathFile, outPathXMI, id + "");
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
+            }
+            if (id % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
+                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
+                System.gc();
             }
             id++;
         }
     }
 
-    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id, boolean verbose) throws Exception {
+    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
         String extension = SearchFileTraversal.getExtension(pathFile);
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
         Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
+        if (data == null)
+            return;
         if (data instanceof Iterable) {
-            ((List<RawModelLoader.OutputLoadedModelSchema>) data).stream().forEach((RawModelLoader.OutputLoadedModelSchema x) -> {
-                Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) x).toMap();
-                if (verbose)
-                    System.out.println(dataOutMap);
+            ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema x) -> {
+                Map<String, Object> dataOutMap = x.toMap();
                 dataOutMap.put("extension", extension);
                 dataOutMap.put("id", id);
+                conversionOutput.add(x);
                 this.logsOutput.put(new JSONObject(dataOutMap));
             });
         } else {
-            Map<String, Object> dataOutMap = ((RawModelLoader.OutputLoadedModelSchema) data).toMap();
-            if (verbose)
-                System.out.println(dataOutMap);
+            Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
             dataOutMap.put("extension", extension);
             dataOutMap.put("id", id);
+            conversionOutput.add((OutputLoadedModelSchema) data);
             this.logsOutput.put(new JSONObject(dataOutMap));
         }
-
+        data = null;
     }
 
     private void loggingConvertingResult() throws Exception {
@@ -203,5 +200,48 @@ public class ArchModelConverter {
         reports.get("general").put("totalFilesWithErrors", this.filterOutputResults(this.logsOutput,
                 (JSONObject el) -> el.get("isParsingSucceeded").equals(false)).length());
         return reports;
+    }
+
+    void createCSVOfError() {
+        try {
+            File file = Paths.get(this.configObj.getRootPath(), this.configObj.getOutputFolderName(), "error-info.csv").toFile();
+            FileWriter outputFile = new FileWriter(file);
+            CSVWriter writer = new CSVWriter(outputFile);
+            String[] header = {"model_name", "src_path", "is_parsed", "ref_resolving_error", "syntax_error", "error_codes"};
+            writer.writeNext(header);
+            for (OutputLoadedModelSchema element : this.conversionOutput) {
+                String[] row = new String[header.length];
+                row[0] = element.modelName;
+                row[1] = element.pathAADLFile;
+                row[2] = element.isParsingSucceeded + "";
+                int ref_resolving_error = 0;
+                int syntaxError = 0;
+                Set<String> errorCodes = new HashSet<>();
+                for (Object error : element.getErrors(true)) {
+                    String errMessage = error.toString();
+                    if (errMessage.contains("Couldn't resolve reference")) {
+                        ref_resolving_error++;
+                    }
+                    if (error instanceof Issue) {
+                        String code = ((Issue) error).getCode();
+                        if (code != null)
+                            errorCodes.add(code);
+                        if (((Issue) error).isSyntaxError())
+                            syntaxError++;
+                    } else {
+                        syntaxError++;
+                    }
+                }
+                row[3] = ref_resolving_error + "";
+                row[4] = syntaxError + "";
+                row[5] = errorCodes.toString();
+                writer.writeNext(row);
+            }
+            writer.close();
+            System.out.println("GENERATED CSV OF ERROR REPORTS SUCCESSFULLY: " + file.getAbsolutePath());
+        } catch (Exception error) {
+            System.out.println("Error creating a csv file");
+            error.printStackTrace();
+        }
     }
 }
