@@ -15,9 +15,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-import java.util.stream.Stream;
-
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArchModelConverter {
@@ -76,7 +75,8 @@ public class ArchModelConverter {
         System.out.println("*********************STAGE 2********************");
         System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
         long startTime = System.nanoTime();
-        this.convertModels(true);
+//        this.convertModels(true);
+        this.convertModelsInParallel(true);
         long endTime = System.nanoTime();
         double elapsedTime = (double) (endTime - startTime) / 1000000000;
         System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED: " + new DecimalFormat("0.000").format(elapsedTime) + "s");
@@ -102,48 +102,85 @@ public class ArchModelConverter {
     }
 
     private void convertModels(boolean verbose) throws Exception {
-        int id = 0;
+        this.convertSliceOfModels(0, this.dataModelFiles.size(), verbose);
+    }
+
+    private void convertModelsInParallel(boolean verbose) throws Exception {
+        int NUM_THREADS = Math.min(3, Runtime.getRuntime().availableProcessors());
+        int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
+        List<Thread> poolThreads = new ArrayList<>();
+        for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
+            final int start = i;
+            final int end = Math.min(start + chunksSize, this.dataModelFiles.size());
+            poolThreads.add(new Thread(() -> {
+                try {
+                    convertSliceOfModels(start, end, verbose);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+        poolThreads.forEach(Thread::start);
+        for (Thread t : poolThreads) {
+            t.join();
+        }
+    }
+
+
+    private void convertSliceOfModels(int start, int end, boolean verbose) throws Exception {
         int MAX_BATCH_FOR_GC = 20;
         String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
-        for (String pathFile : this.dataModelFiles) {
+        int counter = 0;
+        for (int i = start; i < end && i < this.dataModelFiles.size(); i++) {
+            String pathFile = this.dataModelFiles.get(i);
             String extension = SearchFileTraversal.getExtension(pathFile);
             if (this.converterModelClassMap.containsKey(extension)) {
                 if (verbose)
-                    System.out.println(id + "/" + this.dataModelFiles.size() + " Analyzing path: " + pathFile);
-                this.convertModelsUsingClass(pathFile, outPathXMI, id + "");
+                    System.out.println(i + 1 + "/" + end + " Analyzing path: " + pathFile);
+                this.convertModelsUsingClass(pathFile, outPathXMI, i + "");
             } else {
                 System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
             }
-            if (id % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
+
+            if (counter % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
                 System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
                 System.gc();
             }
-            id++;
+            counter++;
         }
+        System.out.println("\033[0;32m" + "FINISH OF PROCESSING FROM: " + start + " TO: " + end + "\033[0m");
     }
+
 
     private void convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
         String extension = SearchFileTraversal.getExtension(pathFile);
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
         Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
-        if (data == null)
+        if (data == null) {
             return;
-        if (data instanceof Iterable) {
-            ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema x) -> {
-                Map<String, Object> dataOutMap = x.toMap();
+        }
+        ReentrantLock lock = new ReentrantLock();
+        lock.lock();
+        try {
+            if (data instanceof Iterable) {
+                ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema out) -> {
+                    Map<String, Object> dataOutMap = out.toMap();
+                    dataOutMap.put("extension", extension);
+                    dataOutMap.put("id", id);
+                    this.conversionOutput.add(out);
+                    this.logsOutput.put(new JSONObject(dataOutMap));
+                });
+            } else {
+                Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
                 dataOutMap.put("extension", extension);
                 dataOutMap.put("id", id);
-                conversionOutput.add(x);
+                this.conversionOutput.add((OutputLoadedModelSchema) data);
                 this.logsOutput.put(new JSONObject(dataOutMap));
-            });
-        } else {
-            Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
-            dataOutMap.put("extension", extension);
-            dataOutMap.put("id", id);
-            conversionOutput.add((OutputLoadedModelSchema) data);
-            this.logsOutput.put(new JSONObject(dataOutMap));
+            }
+        } finally {
+            lock.unlock();
         }
-        data = null;
     }
 
     private void loggingConvertingResult() throws Exception {
@@ -218,6 +255,8 @@ public class ArchModelConverter {
                 int syntaxError = 0;
                 Set<String> errorCodes = new HashSet<>();
                 for (Object error : element.getErrors(true)) {
+                    if(error == null)
+                        continue;
                     String errMessage = error.toString();
                     if (errMessage.contains("Couldn't resolve reference")) {
                         ref_resolving_error++;
