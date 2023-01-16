@@ -13,7 +13,7 @@ import java.util.Queue;
 import java.util.Set;
 
 public class CrossReferenceResolver {
-    static int UP_LEVELS = 2;
+    static int UP_LEVELS = 1;
 
     static Map<String, Object> resolve(String path, String extension) {
         List<String> foundFiles = new ArrayList<>(Arrays.asList(path));

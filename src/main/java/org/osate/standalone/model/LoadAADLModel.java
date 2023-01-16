@@ -60,6 +60,7 @@ public class LoadAADLModel implements RawModelLoader {
             throw new Exception("The file for storing the XMI files: " + pathXMLFile + "does not exits");
         }
 
+//        System.out.println("pathToModelsFiles: " + pathToModelsFiles);
         try {
             for (String modelPaths : pathToModelsFiles) {
                 rs.getResource(URI.createURI(modelPaths), true);

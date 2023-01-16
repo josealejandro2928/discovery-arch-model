@@ -75,8 +75,8 @@ public class ArchModelConverter {
         System.out.println("*********************STAGE 2********************");
         System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
         long startTime = System.nanoTime();
-//        this.convertModels(true);
-        this.convertModelsInParallel(true);
+        this.convertModels(true);
+//        this.convertModelsInParallel(true);
         long endTime = System.nanoTime();
         double elapsedTime = (double) (endTime - startTime) / 1000000000;
         System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED: " + new DecimalFormat("0.000").format(elapsedTime) + "s");
@@ -106,7 +106,7 @@ public class ArchModelConverter {
     }
 
     private void convertModelsInParallel(boolean verbose) throws Exception {
-        int NUM_THREADS = Math.min(3, Runtime.getRuntime().availableProcessors());
+        int NUM_THREADS = Math.min(4, Runtime.getRuntime().availableProcessors());
         int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
         List<Thread> poolThreads = new ArrayList<>();
         for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
