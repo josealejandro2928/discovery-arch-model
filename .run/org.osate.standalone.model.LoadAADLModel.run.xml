@@ -2,7 +2,7 @@
   <configuration default="false" name="org.osate.standalone.model.LoadAADLModel" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.osate.standalone.model.Main" />
     <module name="discovery.arch.model" />
-    <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../EXAMPLE_ROOT_DIRECTORY_MODELS/raw-models/repositories-aadl/a868/mc_watchdog_dv.aadl" />
+    <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../EXAMPLE_ROOT_DIRECTORY_MODELS/raw-models/Watchdog/mc_watchdog_dv.aadl" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

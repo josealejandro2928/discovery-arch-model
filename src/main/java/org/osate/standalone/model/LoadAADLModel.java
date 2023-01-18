@@ -23,11 +23,13 @@ import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
 import org.discover.arch.model.OutputLoadedModelSchema;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class LoadAADLModel implements RawModelLoader {
     private static LoadAADLModel INSTANCE = null;
     Injector injector;
+    private final String PREDECLARED_PROPERTY_SET = Paths.get("aadl").toAbsolutePath().toString();
 
     private LoadAADLModel() {
         this.injector = new Aadl2StandaloneSetup().createInjectorAndDoEMFRegistration();
@@ -60,11 +62,14 @@ public class LoadAADLModel implements RawModelLoader {
             throw new Exception("The file for storing the XMI files: " + pathXMLFile + "does not exits");
         }
 
-//        System.out.println("pathToModelsFiles: " + pathToModelsFiles);
+        System.out.println("pathToModelsFiles: " + pathToModelsFiles);
         try {
             for (String modelPaths : pathToModelsFiles) {
                 rs.getResource(URI.createURI(modelPaths), true);
             }
+            ////////LOADING PREDECLARATED AADL DEFINITIONS///////////
+            this.loadPredeclaredPropertySetsAADL(rs);
+            /////////////////////////////////////////////////
             for (Resource resource : rs.getResources()) {
                 resource.load(null);
             }
@@ -170,6 +175,15 @@ public class LoadAADLModel implements RawModelLoader {
         xmiResource.save(null);
         xmiResource = null;
         return instanceName;
+    }
+
+    private void loadPredeclaredPropertySetsAADL(XtextResourceSet rs) {
+
+        File file = new File(this.PREDECLARED_PROPERTY_SET);
+        for (File fileChild : Objects.requireNonNull(file.listFiles())) {
+            String pathTo_AADL_Resource = fileChild.getAbsolutePath();
+            rs.getResource(URI.createURI(pathTo_AADL_Resource), true);
+        }
     }
 
 }

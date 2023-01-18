@@ -1,6 +1,10 @@
 package org.osate.standalone.model;
 
+import org.discover.arch.model.Config;
+
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +17,8 @@ import java.util.Queue;
 import java.util.Set;
 
 public class CrossReferenceResolver {
-    static int UP_LEVELS = 1;
+    static int UP_LEVELS = 2;
+    private static final Config configObj = Config.getInstance("/mnt/DATA/00-GSSI/00-WORK/EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
 
     static Map<String, Object> resolve(String path, String extension) {
         List<String> foundFiles = new ArrayList<>(Arrays.asList(path));
@@ -26,11 +31,12 @@ public class CrossReferenceResolver {
         }
 
         int levelsUp = 0;
-        while (levelsUp < UP_LEVELS && file.getParent() != null) {
+        while (!isReachingTopPathOrigin(file.getParent()) && levelsUp < UP_LEVELS && file.getParent() != null) {
             file = new File(file.getParent());
             levelsUp++;
         }
         parentDirectory = file.getPath();
+//        System.out.println("The parent path for modelPath: " + path + " is: " + parentDirectory);
         parentName = file.getName();
         Set<String> visitedFiles = new HashSet<>();
         Queue<String> queue = new LinkedList<>();
@@ -71,5 +77,11 @@ public class CrossReferenceResolver {
         }
         String[] chunksFileString = path.split("\\.");
         return chunksFileString[chunksFileString.length - 1];
+    }
+
+    static boolean isReachingTopPathOrigin(String path) {
+        List<Path> topPaths = configObj.getArchivesForSearching().stream().map((String x) -> Paths.get(x).toAbsolutePath()).toList();
+        boolean res = topPaths.contains(Paths.get(path));
+        return res;
     }
 }
