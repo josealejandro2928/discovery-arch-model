@@ -19,13 +19,14 @@ public class Main {
             return;
         }
         try {
+            System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
+            config.createFolderOutput();
+
             System.out.println("*********************STAGE 1********************");
             System.out.println("ANALYZING THE RESOURCES PATHS");
             ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
             SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(resourcesProviderAnalyzer.getFileResourcePaths());
             ArchModelConverter archModelConverter = new ArchModelConverter();
-            System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
-            config.createFolderOutput();
 
             List<String> filesFound = fileDiscover.searchForFiles(true, false);
             System.out.println("SCANNING RESULTS: " + fileDiscover.scanningResult);
