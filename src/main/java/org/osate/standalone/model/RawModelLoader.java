@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface RawModelLoader {
-    Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
+    Map<String, Object> loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception;
+
     List<Object> validateModel(Resource[] resources);
+    String MODEL_FILES_FOUND = "modelFilesFound";
+    String CONVERTING_OUTPUT = "convertingOutput";
 
 }

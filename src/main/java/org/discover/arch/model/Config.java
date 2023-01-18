@@ -27,7 +27,7 @@ public class Config {
     private List<String> filesFound;
     private Map<String, Object> reports;
     private Map<String, Date> cache;
-    int timeCacheForDiscoveringSearchOverFilesInSeconds;
+    public int timeCacheForDiscoveringSearchOverFilesInSeconds;
     int timeCacheForPollingFromExternalResources;
 
 

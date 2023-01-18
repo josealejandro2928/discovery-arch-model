@@ -16,8 +16,8 @@ public class Main {
             if (args.length == 0)
                 throw new Exception("The global path to the xmi file is needed");
             String modelPath = args[0];
-            boolean isAadl = modelPath.contains(".aadl");
-            boolean isXMI = modelPath.contains(".aaxl2");
+            boolean isAadl = args[1].contains("aadl");
+            boolean isXMI = args[1].contains("aaxl2");
             URI_XMI_MODEL = args[0];
             URI_AADL_MODEL = args[0];
             if (isXMI) {
@@ -36,7 +36,7 @@ public class Main {
                 if (outputSchema instanceof Iterable<?>) {
                     System.out.println(outputSchema);
                 } else {
-                    System.out.println(((OutputLoadedModelSchema) outputSchema).toMap());
+                    System.out.println((outputSchema));
                 }
             }
 
