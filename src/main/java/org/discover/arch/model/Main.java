@@ -1,4 +1,5 @@
 package org.discover.arch.model;
+
 import java.util.List;
 
 public class Main {
@@ -19,18 +20,16 @@ public class Main {
             return;
         }
         try {
-            System.out.println("*********************STAGE 1********************");
-            System.out.println("ANALYZING THE RESOURCES PATHS");
-            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
-            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(resourcesProviderAnalyzer.getFileResourcePaths());
-            ArchModelConverter archModelConverter = new ArchModelConverter();
             System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
             config.createFolderOutput();
 
-            List<String> filesFound = fileDiscover.searchForFiles(true, false);
-            System.out.println("SCANNING RESULTS: " + fileDiscover.scanningResult);
-            archModelConverter.setDataModelFiles(filesFound);
-            archModelConverter.initProcessing();
+            System.out.println("*********************STAGE 1********************");
+            System.out.println("ANALYZING THE RESOURCES PATHS");
+            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
+            List<String> rootPathToAnalyze = resourcesProviderAnalyzer.getFileResourcePaths();
+            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(rootPathToAnalyze);
+            ArchModelConverter archModelConverter = new ArchModelConverter();
+            fileDiscover.analyseModels(archModelConverter);
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
             e.printStackTrace();

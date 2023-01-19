@@ -1,9 +1,6 @@
 package org.discover.arch.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OutputLoadedModelSchema {
     public List<Object> errors;
@@ -32,6 +29,8 @@ public class OutputLoadedModelSchema {
     }
 
     public List<Object> getErrors(boolean filtered) {
+        if (this.errors == null)
+            return new ArrayList<>();
         return this.errors.stream().filter((Object x) -> {
             if (!filtered || x == null)
                 return true;
@@ -52,7 +51,13 @@ public class OutputLoadedModelSchema {
 
     public Map<String, Object> toMap() {
         Map<String, Object> data = new HashMap<>();
-        List<String> listErrors = this.getErrors(true).stream().map(Object::toString).toList();
+        List<String> listErrors = this.getErrors(true).stream().map((x) -> {
+            try {
+                return x.toString();
+            } catch (Exception e) {
+                return "Error";
+            }
+        }).toList();
         listErrors = listErrors.stream().map((String e) -> {
             if (e.length() > 255)
                 return e.substring(0, 255) + "...";
