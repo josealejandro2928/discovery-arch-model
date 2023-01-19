@@ -66,23 +66,21 @@ public class EcoreModelHandler {
 
     void processModels(QueryModel queryModelInst) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
+        int indexFile = 1;
         for (String modelUri : this.uriModels) {
             try {
-                try {
-                    System.out.println("------------------------------------------------------------------");
-                    System.out.println("URI: " + modelUri);
-                    Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
-                    data.put("uri", modelUri);
-                    this.processedDataFromModel.put(modelUri, data);
-                    System.out.println("------------------------------------------------------------------");
-                } catch (Exception e) {
-                    System.out.println("Error performing query over the model: " + e.getMessage());
-                    e.printStackTrace();
-                }
+                System.out.println("------------------------------------------------------------------");
+
+                System.out.println("\033[0;33m" + indexFile + "/" + this.uriModels.size() + " URI: " + modelUri + "\033[0m");
+                Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
+                data.put("uri", modelUri);
+                this.processedDataFromModel.put(modelUri, data);
+                System.out.println("------------------------------------------------------------------");
             } catch (Exception e) {
-                System.out.println("Error getting the models from URI: " + e.getMessage());
+                System.err.println("Error performing query over the model: " + e.getMessage());
                 e.printStackTrace();
             }
+            indexFile++;
         }
     }
 

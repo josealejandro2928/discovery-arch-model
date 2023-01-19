@@ -44,102 +44,103 @@ public class LoadAADLModel implements RawModelLoader {
         return INSTANCE;
     }
 
-    public Object loadModel(String pathAADLFile, String pathXMLFile, String id, boolean verbose) throws Exception {
+    public Map<String, Object> loadModel(String pathAADLFileOrDirectory, String pathXMLFile, String id, boolean verbose) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
-        OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
-        Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolve(pathAADLFile, null);
+        Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolveDown(pathAADLFileOrDirectory);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
-        File fileAadl = new File(pathAADLFile);
+        File fileAadl = new File(pathAADLFileOrDirectory);
         File fileXML = new File(pathXMLFile);
-        List<EObject> contents;
-        AadlPackage aadlPackage;
-        List<SystemImplementation> systemImplementations;
+        List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
+        Set<Resource> resourceSet;
+        Set<String> resourcesInstantiated = new HashSet<>();
 
         if (!fileAadl.exists()) {
-            throw new Exception("The addl file: " + pathAADLFile + " does not exits");
+            throw new Exception("The aadl file: " + pathAADLFileOrDirectory + " does not exits");
         }
         if (!fileXML.exists()) {
             throw new Exception("The file for storing the XMI files: " + pathXMLFile + "does not exits");
         }
 
-        System.out.println("pathToModelsFiles: " + pathToModelsFiles);
-        try {
-            for (String modelPaths : pathToModelsFiles) {
+//        System.out.println("pathToModelsFiles: " + pathToModelsFiles);
+
+        for (String modelPaths : pathToModelsFiles) {
+            try {
                 rs.getResource(URI.createURI(modelPaths), true);
+            } catch (Exception e) {
+                System.err.println("\tError resolving path of models: " + e.getMessage());
+
             }
-            ////////LOADING PREDECLARATED AADL DEFINITIONS///////////
-            this.loadPredeclaredPropertySetsAADL(rs);
-            /////////////////////////////////////////////////
-            for (Resource resource : rs.getResources()) {
+        }
+        ////////LOADING PREDECLARED AADL DEFINITIONS///////////
+        Set<String> predeclaredFilesModelAADL = (HashSet<String>) this.loadPredeclaredPropertySetsAADL(rs);
+        /////////////////////////////////////////////////
+        for (Resource resource : rs.getResources()) {
+            try {
                 resource.load(null);
-            }
-            Resource resourceRoot = rs.getResources().get(0);
-            EcoreUtil.resolveAll(resourceRoot);
-            ////////////// VALIDATE THE MODEL ///////////////////////////
-            outputSchema.pathAADLFile = pathAADLFile;
-            outputSchema.pathXMLFile = pathXMLFile;
-            outputSchema.errors = validateModel(new Resource[]{resourceRoot});
-            ////////////////////////////////////////////////////////////
-            contents = resourceRoot.getContents();
-            if (contents.size() == 0) {
-                throw new Exception("This model: " + pathAADLFile + " cannot be loaded, it must be corrupted");
-            }
+            } catch (Exception e) {
+                System.err.println("\tError loading resources: " + e.getMessage());
 
-            if (!(contents.get(0) instanceof AadlPackage))
-                return null;
-
-            aadlPackage = (AadlPackage) contents.get(0);
-            outputSchema.modelName = aadlPackage.getFullName();
-            systemImplementations = new ArrayList<>();
-            if (verbose) {
-                System.out.println("Looking for only system implementation models...");
             }
-            for (Classifier classifier : aadlPackage.getPublicSection().getOwnedClassifiers()) {
-                if (classifier instanceof SystemImplementationImpl) {
-                    systemImplementations.add((SystemImplementation) classifier);
+        }
+
+        resourceSet = new HashSet<>(rs.getResources());
+        for (Resource resourceModel : resourceSet) {
+            String resourceModelPath = resourceModel.getURI().toString();
+            System.out.println("\t-model: " + resourceModelPath);
+            if (predeclaredFilesModelAADL.contains(resourceModelPath))
+                continue;
+            OutputLoadedModelSchema outputSchema = new OutputLoadedModelSchema();
+            try {
+                EcoreUtil.resolveAll(resourceModel);
+                outputSchema.pathAADLFile = resourceModelPath;
+                outputSchema.pathXMLFile = pathXMLFile;
+                outputSchema.errors = validateModel(new Resource[]{resourceModel});
+                List<EObject> contents = resourceModel.getContents();
+                if (contents.size() == 0) {
+                    throw new Exception("This model: " + outputSchema.pathAADLFile + " cannot be loaded, it must be corrupted");
                 }
-            }
+                if (!(contents.get(0) instanceof AadlPackage))
+                    throw new Exception("This model: " + outputSchema.pathAADLFile + " is not an AadlPackage");
+                AadlPackage aadlPackage = (AadlPackage) contents.get(0);
+                outputSchema.modelName = aadlPackage.getFullName();
 
-            List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
-            for (SystemImplementation systemImpl : systemImplementations) {
-                OutputLoadedModelSchema output = new OutputLoadedModelSchema(outputSchema);
-                SystemInstance systemInstance;
-                try {
-                    systemInstance = InstantiateModel.instantiate(systemImpl);
-                    output.isSavedTheModel = true;
-                    output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, output.modelName, id);
-                    resultOutput.add(output);
-                } catch (final Exception e) {
-                    output.errors.add(e.getMessage());
-                    output.isSavedTheModel = false;
-                    output.isParsingSucceeded = false;
-                    resultOutput.add(output);
-                    System.out.println("\033[0;31m" + "Error instantiating the model: " + output.modelName +
-                            " which system instance is: " + systemImpl.getName() + "\033[0m");
-                } finally {
-                    output = null;
-                    systemInstance = null;
+                List<SystemImplementation> systemImplementations = aadlPackage.getPublicSection().getOwnedClassifiers().stream()
+                        .filter((Classifier classifier) -> classifier instanceof SystemImplementationImpl)
+                        .map((Classifier el) -> (SystemImplementation) el).toList();
+
+                for (SystemImplementation systemImpl : systemImplementations) {
+                    OutputLoadedModelSchema output = new OutputLoadedModelSchema(outputSchema);
+                    SystemInstance systemInstance;
+                    try {
+                        systemInstance = InstantiateModel.instantiate(systemImpl);
+                        output.isSavedTheModel = true;
+                        output.pathXMLFile = saveModelToXMI(systemInstance, rs, pathXMLFile, output.modelName, id, resourcesInstantiated);
+                        resultOutput.add(output);
+                    } catch (final Exception e) {
+                        output.errors.add(e.getMessage());
+                        output.isSavedTheModel = false;
+                        output.isParsingSucceeded = false;
+                        resultOutput.add(output);
+                        System.err.println("\tError instantiating the model: " + output.modelName +
+                                " which system instance is: " + systemImpl.getName() + ": " + e);
+//                        e.printStackTrace();
+                    }
                 }
-            }
-            if (resultOutput.isEmpty()) {
+
+            } catch (Exception e) {
+                outputSchema.errors.add(e.getMessage());
+                outputSchema.isParsingSucceeded = false;
+                System.err.println("\tError: " + e.getMessage());
                 resultOutput.add(outputSchema);
             }
-
-            return resultOutput;
-        } catch (final Exception e) {
-            outputSchema.errors.add(e.getMessage());
-            outputSchema.isParsingSucceeded = false;
-            System.out.println("\033[0;31m" + "Error: " + e.getMessage() + "\033[0m");
-            if (verbose)
-                System.out.print(outputSchema);
-            return outputSchema;
-        } finally {
-            rs = null;
-            contents = null;
-            aadlPackage = null;
-            systemImplementations = null;
-            crossReferenceResolverOut = null;
         }
+        rs = null;
+        resourceSet = null;
+        resourcesInstantiated = null;
+        Map<String, Object> dataOutput = new HashMap<>();
+        dataOutput.put(this.MODEL_FILES_FOUND, pathToModelsFiles);
+        dataOutput.put(this.CONVERTING_OUTPUT, resultOutput);
+        return dataOutput;
     }
 
 
@@ -158,7 +159,13 @@ public class LoadAADLModel implements RawModelLoader {
         return error.subList(0, Math.min(10, error.size()));
     }
 
-    private String saveModelToXMI(SystemInstance systemInstance, XtextResourceSet rs, String pathXMLFile, String parentName, String id)
+    private String saveModelToXMI(SystemInstance systemInstance,
+                                  XtextResourceSet rs,
+                                  String pathXMLFile,
+                                  String parentName,
+                                  String id,
+                                  Set<String> resourcesInstantiated)
+
             throws Exception {
         String instanceName = pathXMLFile;
         if (id != null) {
@@ -169,7 +176,17 @@ public class LoadAADLModel implements RawModelLoader {
         }
 
         String simple_name = systemInstance.getName().replaceAll("_Instance", "");
-        instanceName += simple_name + ".aaxl2";
+        int indexName = 1;
+        instanceName += simple_name + "_" + indexName;
+
+        while (resourcesInstantiated.contains(instanceName)) {
+            List<String> name_split = new ArrayList<>(List.of(instanceName.split("_")));
+            name_split.remove(name_split.size() - 1);
+            instanceName = String.join("_", name_split) + "_" + indexName;
+            indexName++;
+        }
+        resourcesInstantiated.add(instanceName);
+        instanceName += ".aaxl2";
         Resource xmiResource = rs.createResource(URI.createURI(instanceName));
         xmiResource.getContents().add(systemInstance);
         xmiResource.save(null);
@@ -177,13 +194,15 @@ public class LoadAADLModel implements RawModelLoader {
         return instanceName;
     }
 
-    private void loadPredeclaredPropertySetsAADL(XtextResourceSet rs) {
-
+    private Iterable<String> loadPredeclaredPropertySetsAADL(XtextResourceSet rs) {
+        Set<String> predeclaredFilesModelAADL = new HashSet<>();
         File file = new File(this.PREDECLARED_PROPERTY_SET);
         for (File fileChild : Objects.requireNonNull(file.listFiles())) {
             String pathTo_AADL_Resource = fileChild.getAbsolutePath();
-            rs.getResource(URI.createURI(pathTo_AADL_Resource), true);
+            Resource resource = rs.getResource(URI.createURI(pathTo_AADL_Resource), true);
+            predeclaredFilesModelAADL.add(resource.getURI().toString());
         }
+        return predeclaredFilesModelAADL;
     }
 
 }

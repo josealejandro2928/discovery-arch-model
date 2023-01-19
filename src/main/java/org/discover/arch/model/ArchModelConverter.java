@@ -21,7 +21,7 @@ import java.util.function.Function;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArchModelConverter {
     String rootPath;
-    List<String> dataModelFiles = new ArrayList<>();
+    Set<String> dataModelFiles = new HashSet<>();
     List<String> extensions;
     String folderOutputName;
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
@@ -37,7 +37,7 @@ public class ArchModelConverter {
     }
 
     public ArchModelConverter setDataModelFiles(List<String> data) {
-        this.dataModelFiles = data;
+        this.dataModelFiles = new HashSet<>(data);
         return this;
     }
 
@@ -65,31 +65,11 @@ public class ArchModelConverter {
 
     @Override
     public String toString() {
-        return "ArchModelConverter:: rootPath: " + this.rootPath + "; " + "exts: " + this.extensions;
-    }
-
-    public void initProcessing() throws Exception {
-        System.out.println("COPYING TO FOLDERS THE FILES...");
-        this.copyFoundedFiles();
-        System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
-        System.out.println("*********************STAGE 2********************");
-        System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
-        long startTime = System.nanoTime();
-        this.convertModels(true);
-//        this.convertModelsInParallel(true);
-        long endTime = System.nanoTime();
-        double elapsedTime = (double) (endTime - startTime) / 1000000000;
-        System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED: " + new DecimalFormat("0.000").format(elapsedTime) + "s");
-        System.out.println("LOGGING THE CONVERSION FILE .json...");
-        this.loggingConvertingResult();
-        System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
-        System.out.println("CREATING CSV OF ERRORS...");
-        this.createCSVOfError();
-        System.out.println("CREATING CSV OF ERRORS... COMPLETED");
+        return "ArchModelConverter:: rootPath: " + this.rootPath + "; " + "ext: " + this.extensions;
     }
 
 
-    private void copyFoundedFiles() throws Exception {
+    void copyFoundedFiles() throws Exception {
         int id = 1;
         for (String pathFile : this.dataModelFiles) {
             String extension = SearchFileTraversal.getExtension(pathFile);
@@ -101,89 +81,36 @@ public class ArchModelConverter {
         }
     }
 
-    private void convertModels(boolean verbose) throws Exception {
-        this.convertSliceOfModels(0, this.dataModelFiles.size(), verbose);
-    }
+//    private void convertModelsInParallel(boolean verbose) throws Exception {
+//        int NUM_THREADS = Math.min(4, Runtime.getRuntime().availableProcessors());
+//        int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
+//        List<Thread> poolThreads = new ArrayList<>();
+//        for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
+//            final int start = i;
+//            final int end = Math.min(start + chunksSize, this.dataModelFiles.size());
+//            poolThreads.add(new Thread(() -> {
+//                try {
+//                    convertSliceOfModels(start, end, verbose);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    throw new RuntimeException(e);
+//                }
+//            }));
+//        }
+//        poolThreads.forEach(Thread::start);
+//        for (Thread t : poolThreads) {
+//            t.join();
+//        }
+//    }
 
-    private void convertModelsInParallel(boolean verbose) throws Exception {
-        int NUM_THREADS = Math.min(4, Runtime.getRuntime().availableProcessors());
-        int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
-        List<Thread> poolThreads = new ArrayList<>();
-        for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
-            final int start = i;
-            final int end = Math.min(start + chunksSize, this.dataModelFiles.size());
-            poolThreads.add(new Thread(() -> {
-                try {
-                    convertSliceOfModels(start, end, verbose);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
-            }));
-        }
-        poolThreads.forEach(Thread::start);
-        for (Thread t : poolThreads) {
-            t.join();
-        }
-    }
-
-
-    private void convertSliceOfModels(int start, int end, boolean verbose) throws Exception {
-        int MAX_BATCH_FOR_GC = 20;
-        String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
-        int counter = 0;
-        for (int i = start; i < end && i < this.dataModelFiles.size(); i++) {
-            String pathFile = this.dataModelFiles.get(i);
-            String extension = SearchFileTraversal.getExtension(pathFile);
-            if (this.converterModelClassMap.containsKey(extension)) {
-                if (verbose)
-                    System.out.println(i + 1 + "/" + end + " Analyzing path: " + pathFile);
-                this.convertModelsUsingClass(pathFile, outPathXMI, i + "");
-            } else {
-                System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
-            }
-
-            if (counter % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
-                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
-                System.gc();
-            }
-            counter++;
-        }
-        System.out.println("\033[0;32m" + "FINISH OF PROCESSING FROM: " + start + " TO: " + end + "\033[0m");
-    }
-
-
-    private void convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
-        String extension = SearchFileTraversal.getExtension(pathFile);
+    private Map<String, Object> convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
+        // String extension = SearchFileTraversal.getExtension(pathFile);
+        String extension = "aadl";
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
-        Object data = modelLoader.loadModel(pathFile, outPathXMI, id, false);
-        if (data == null) {
-            return;
-        }
-        ReentrantLock lock = new ReentrantLock();
-        lock.lock();
-        try {
-            if (data instanceof Iterable) {
-                ((List<OutputLoadedModelSchema>) data).forEach((OutputLoadedModelSchema out) -> {
-                    Map<String, Object> dataOutMap = out.toMap();
-                    dataOutMap.put("extension", extension);
-                    dataOutMap.put("id", id);
-                    this.conversionOutput.add(out);
-                    this.logsOutput.put(new JSONObject(dataOutMap));
-                });
-            } else {
-                Map<String, Object> dataOutMap = ((OutputLoadedModelSchema) data).toMap();
-                dataOutMap.put("extension", extension);
-                dataOutMap.put("id", id);
-                this.conversionOutput.add((OutputLoadedModelSchema) data);
-                this.logsOutput.put(new JSONObject(dataOutMap));
-            }
-        } finally {
-            lock.unlock();
-        }
+        return modelLoader.loadModel(pathFile, outPathXMI, id, false);
     }
 
-    private void loggingConvertingResult() throws Exception {
+    void loggingConvertingResult() throws Exception {
         String jsonStr = this.logsOutput.toString(2);
         try {
             FileWriter fw = new FileWriter(Paths.get(this.rootPath, this.folderOutputName, "conversion-logs.json").toString());
@@ -255,7 +182,7 @@ public class ArchModelConverter {
                 int syntaxError = 0;
                 Set<String> errorCodes = new HashSet<>();
                 for (Object error : element.getErrors(true)) {
-                    if(error == null)
+                    if (error == null)
                         continue;
                     String errMessage = error.toString();
                     if (errMessage.contains("Couldn't resolve reference")) {
@@ -281,6 +208,29 @@ public class ArchModelConverter {
         } catch (Exception error) {
             System.out.println("Error creating a csv file");
             error.printStackTrace();
+        }
+    }
+
+    public void analyzeFileAndConvert(String pathToModelOrFolder) throws Exception {
+        String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
+        File fileSrc = new File(pathToModelOrFolder);
+        Map<String, Object> dataOutput = convertModelsUsingClass(pathToModelOrFolder, outPathXMI, fileSrc.getName());
+        ReentrantLock lock = new ReentrantLock();
+        lock.lock();
+        try {
+            List<String> aadlFiles = (List<String>) dataOutput.get(RawModelLoader.MODEL_FILES_FOUND);
+            this.dataModelFiles.addAll(aadlFiles);
+            List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>)
+                    dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
+            dataOutputConversion.forEach((OutputLoadedModelSchema out) -> {
+                Map<String, Object> dataOutMap = out.toMap();
+                dataOutMap.put("extension", "aadl");
+                this.conversionOutput.add(out);
+                this.logsOutput.put(new JSONObject(dataOutMap));
+            });
+            aadlFiles.forEach(this.configObj::putInCache);
+        } finally {
+            lock.unlock();
         }
     }
 }

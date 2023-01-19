@@ -1,4 +1,5 @@
 package org.discover.arch.model;
+
 import java.util.List;
 
 public class Main {
@@ -25,13 +26,10 @@ public class Main {
             System.out.println("*********************STAGE 1********************");
             System.out.println("ANALYZING THE RESOURCES PATHS");
             ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
-            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(resourcesProviderAnalyzer.getFileResourcePaths());
+            List<String> rootPathToAnalyze = resourcesProviderAnalyzer.getFileResourcePaths();
+            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(rootPathToAnalyze);
             ArchModelConverter archModelConverter = new ArchModelConverter();
-
-            List<String> filesFound = fileDiscover.searchForFiles(true, false);
-            System.out.println("SCANNING RESULTS: " + fileDiscover.scanningResult);
-            archModelConverter.setDataModelFiles(filesFound);
-            archModelConverter.initProcessing();
+            fileDiscover.analyseModels(archModelConverter);
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
             e.printStackTrace();

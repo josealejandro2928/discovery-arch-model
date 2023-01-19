@@ -1,8 +1,6 @@
 package org.discover.arch.model;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +13,9 @@ public class SearchFileTraversal {
     String folderOutputName;
     List<String> extensions;
     List<String> searchPaths;
-    String logfilePath;
     Set<String> dataFilesFound = new HashSet<>();
-    List<String> dataFilesError = new ArrayList<>();
     HashMap<String, String> scanningResult = new HashMap<>();
-    private Config configObj = Config.getInstance(null);
+    private final Config configObj = Config.getInstance(null);
 
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
         this.rootPath = rootPath;
@@ -50,83 +46,74 @@ public class SearchFileTraversal {
         return this;
     }
 
-    public List<String> searchForFiles(boolean storeOnRootPath, boolean verbose) {
-        /// Run a BFS for searching ///
-        int totalFiles = 0;
+    public void analyseModels(ArchModelConverter archModelConverter) {
+        System.out.println("ANALYSING THE MODELS");
+        System.out.println("*********************STAGE 1********************");
         long startTime = System.nanoTime();
+        List<String> avoidFileNames = this.configObj.getAvoidFileNames();
         int delayCache = this.configObj.timeCacheForDiscoveringSearchOverFilesInSeconds;
         List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x, delayCache)).toList();
-        Queue<String> queue = new LinkedList<>(rootPathToScan);
-        System.out.println("SCANNING FILES ...");
-        System.out.println(rootPathToScan);
-
-        while (queue.size() > 0) {
-            String pathFileOrArchive = queue.poll();
-            totalFiles++;
-            if (verbose) {
-                System.out.println("Analysing file: " + pathFileOrArchive + " ...");
-            }
-            File file = new File(pathFileOrArchive);
-            if (!this.configObj.getAvoidFileNames().contains(file.getName())) {
-                if (file.isDirectory()) {
-                    try {
-                        for (File childFile : Objects.requireNonNull(file.listFiles())) {
-                            queue.add(childFile.getPath());
-                        }
-                    } catch (Exception e) {
-                        System.err.println("ERROR reading the files of the directory: " + file);
-                        this.dataFilesError.add(file.getPath());
-                    }
-                } else {
-                    String filePath = file.getPath();
-                    String ext = getExtension(filePath);
-                    if (this.extensions.contains(ext)) {
-                        this.dataFilesFound.add(filePath);
-                    }
+        if (rootPathToScan.size() == 0 && this.searchPaths.size() > 0) {
+            System.out.println("\033[0;33m" + "ALL THE FILES TO ANALYSE WERE ANALYZE BEFORE " +
+                    "AND THE TIME INVALIDATION CACHE HAS NOT BEEN PASSED\n" +
+                    "THE CURRENT TIME INVALIDATION CACHE IS: " + delayCache + "s"
+                    + "\033[0m");
+        }
+        for (String pathToFolderModel : rootPathToScan) {
+            File file = new File(pathToFolderModel);
+            if (!file.isDirectory() || avoidFileNames.contains(file.getName())) continue;
+            int totalFiles = Objects.requireNonNull(file.listFiles()).length;
+            int indexFile = 0;
+            for (File childFile : Objects.requireNonNull(file.listFiles())) {
+                try {
+                    System.out.println("\033[0;33m" + indexFile + "/" + totalFiles + " ANALYZING PATH: " + childFile + "\033[0m");
+                    archModelConverter.analyzeFileAndConvert(childFile.getAbsolutePath());
+                } catch (Exception e) {
+                    System.out.println("Error analysing the file: " + childFile);
+                    e.printStackTrace();
                 }
+                indexFile++;
+                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
+                System.gc();
             }
-
         }
-
-
+        long endTime = System.nanoTime();
+        double elapsedTime = (double) (endTime - startTime) / 1000000000;
+        this.scanningResult.put("filesMatched", archModelConverter.dataModelFiles.size() + "");
+        this.scanningResult.put("elapsedTime", new DecimalFormat("0.000").format(elapsedTime) + "s");
+        System.out.println("SCANNING RESULTS: " + this.scanningResult);
+        System.out.println("ANALYSING THE MODELS COMPLETED");
         /////////UPDATING THE CACHE WITH THE ROOTS PATH OF MODELS////////
-        for (String x : rootPathToScan) {
-            this.configObj.putInCache(x);
-        }
+        rootPathToScan.forEach(this.configObj::putInCache);
         this.configObj.persistCacheInDisk();
         ////////////////////////////////////////////////////////////////
-
-        long endTime = System.nanoTime();
-        System.out.println("SCANNING COMPLETED");
-        if (storeOnRootPath) {
-            try {
-                this.logfilePath = Paths.get(this.rootPath, ".files-found.txt").toString();
-                FileWriter myWriter = new FileWriter(this.logfilePath);
-                myWriter.write(String.join("\n", this.dataFilesFound));
-                if (this.dataFilesError.size() > 0) {
-                    myWriter = new FileWriter(Paths.get(this.rootPath, "files-error.txt").toString());
-                    myWriter.write(String.join("\n", this.dataFilesError));
-                }
-                myWriter.close();
-                System.out.println("Successfully wrote to the log of founded files.");
-            } catch (IOException e) {
-                System.err.println("Error saving the logs of files");
-                e.printStackTrace();
-            }
+        System.out.println("*********************STAGE 2********************");
+        System.out.println("COPYING THE AADL MODELS TO THE FOLDERS THE FILES...");
+        try {
+            archModelConverter.copyFoundedFiles();
+        } catch (Exception e) {
+            System.err.println("Error coping the files: " + e.getMessage());
         }
+        System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
 
-        double elapsedTime = (double) (endTime - startTime) / 1000000000;
-        this.scanningResult.put("totalFiles", totalFiles + "");
-        this.scanningResult.put("filesMatched", this.dataFilesFound.size() + "");
-        this.scanningResult.put("filesWithErrors", this.dataFilesError.size() + "");
-        this.scanningResult.put("elapsedTime", new DecimalFormat("0.000").format(elapsedTime) + "s");
-        return this.dataFilesFound.stream().toList();
+        System.out.println("*********************STAGE 3********************");
+        System.out.println("LOGGING THE CONVERSION FILE .json...");
+        try {
+            archModelConverter.loggingConvertingResult();
+        } catch (Exception e) {
+            System.err.println("Error logging the result of conversion into .json" + e.getMessage());
+        }
+        System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
+        System.out.println("CREATING CSV OF ERRORS...");
+        archModelConverter.createCSVOfError();
+        System.out.println("CREATING CSV OF ERRORS... COMPLETED");
+
     }
 
     @Override
     public String toString() {
         return "rootPath: " + this.rootPath + "; " + "searchPaths: " +
-                this.searchPaths + "; " + "exts: " + this.extensions;
+                this.searchPaths + "; " + "ext: " + this.extensions;
 
     }
 
