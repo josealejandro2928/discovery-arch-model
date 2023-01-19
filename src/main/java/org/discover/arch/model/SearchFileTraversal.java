@@ -53,6 +53,12 @@ public class SearchFileTraversal {
         List<String> avoidFileNames = this.configObj.getAvoidFileNames();
         int delayCache = this.configObj.timeCacheForDiscoveringSearchOverFilesInSeconds;
         List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x, delayCache)).toList();
+        if (rootPathToScan.size() == 0 && this.searchPaths.size() > 0) {
+            System.out.println("\033[0;33m" + "ALL THE FILES TO ANALYSE WERE ANALYZE BEFORE " +
+                    "AND THE TIME INVALIDATION CACHE HAS NOT BEEN PASSED\n" +
+                    "THE CURRENT TIME INVALIDATION CACHE IS: " + delayCache + "s"
+                    + "\033[0m");
+        }
         for (String pathToFolderModel : rootPathToScan) {
             File file = new File(pathToFolderModel);
             if (!file.isDirectory() || avoidFileNames.contains(file.getName())) continue;
