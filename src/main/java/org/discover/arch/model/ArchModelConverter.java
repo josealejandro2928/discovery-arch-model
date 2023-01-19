@@ -65,27 +65,7 @@ public class ArchModelConverter {
 
     @Override
     public String toString() {
-        return "ArchModelConverter:: rootPath: " + this.rootPath + "; " + "exts: " + this.extensions;
-    }
-
-    public void initProcessing() throws Exception {
-        System.out.println("COPYING TO FOLDERS THE FILES...");
-        this.copyFoundedFiles();
-        System.out.println("COPYING TO FOLDERS THE FILES COMPLETED");
-        System.out.println("*********************STAGE 2********************");
-        System.out.println("CONVERTING THE FOUND MODELS TO XMI...");
-        long startTime = System.nanoTime();
-        this.convertModels(true);
-//        this.convertModelsInParallel(true);
-        long endTime = System.nanoTime();
-        double elapsedTime = (double) (endTime - startTime) / 1000000000;
-        System.out.println("CONVERTING THE FOUND MODELS TO XMI COMPLETED: " + new DecimalFormat("0.000").format(elapsedTime) + "s");
-        System.out.println("LOGGING THE CONVERSION FILE .json...");
-        this.loggingConvertingResult();
-        System.out.println("LOGGING THE CONVERSION FILE .json COMPLETED");
-        System.out.println("CREATING CSV OF ERRORS...");
-        this.createCSVOfError();
-        System.out.println("CREATING CSV OF ERRORS... COMPLETED");
+        return "ArchModelConverter:: rootPath: " + this.rootPath + "; " + "ext: " + this.extensions;
     }
 
 
@@ -101,58 +81,27 @@ public class ArchModelConverter {
         }
     }
 
-    private void convertModels(boolean verbose) throws Exception {
-        this.convertSliceOfModels(0, this.dataModelFiles.size(), verbose);
-    }
-
-    private void convertModelsInParallel(boolean verbose) throws Exception {
-        int NUM_THREADS = Math.min(4, Runtime.getRuntime().availableProcessors());
-        int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
-        List<Thread> poolThreads = new ArrayList<>();
-        for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
-            final int start = i;
-            final int end = Math.min(start + chunksSize, this.dataModelFiles.size());
-            poolThreads.add(new Thread(() -> {
-                try {
-                    convertSliceOfModels(start, end, verbose);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
-            }));
-        }
-        poolThreads.forEach(Thread::start);
-        for (Thread t : poolThreads) {
-            t.join();
-        }
-    }
-
-
-    private void convertSliceOfModels(int start, int end, boolean verbose) throws Exception {
-        int MAX_BATCH_FOR_GC = 20;
-        String outPathXMI = Paths.get(this.rootPath, this.folderOutputName, "xmi") + "/";
-        int counter = 0;
-        List<String> listModelFiles = new ArrayList<>(this.dataModelFiles);
-        for (int i = start; i < end && i < listModelFiles.size(); i++) {
-            String pathFile = listModelFiles.get(i);
-            String extension = SearchFileTraversal.getExtension(pathFile);
-            if (this.converterModelClassMap.containsKey(extension)) {
-                if (verbose)
-                    System.out.println(i + 1 + "/" + end + " Analyzing path: " + pathFile);
-                this.convertModelsUsingClass(pathFile, outPathXMI, i + "");
-            } else {
-                System.out.println("This converter does not support the mapping between models of " + extension + " to " + " xmi ");
-            }
-
-            if (counter % MAX_BATCH_FOR_GC == MAX_BATCH_FOR_GC - 1) {
-                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
-                System.gc();
-            }
-            counter++;
-        }
-        System.out.println("\033[0;32m" + "FINISH OF PROCESSING FROM: " + start + " TO: " + end + "\033[0m");
-    }
-
+//    private void convertModelsInParallel(boolean verbose) throws Exception {
+//        int NUM_THREADS = Math.min(4, Runtime.getRuntime().availableProcessors());
+//        int chunksSize = this.dataModelFiles.size() / NUM_THREADS;
+//        List<Thread> poolThreads = new ArrayList<>();
+//        for (int i = 0; i < dataModelFiles.size(); i += chunksSize) {
+//            final int start = i;
+//            final int end = Math.min(start + chunksSize, this.dataModelFiles.size());
+//            poolThreads.add(new Thread(() -> {
+//                try {
+//                    convertSliceOfModels(start, end, verbose);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    throw new RuntimeException(e);
+//                }
+//            }));
+//        }
+//        poolThreads.forEach(Thread::start);
+//        for (Thread t : poolThreads) {
+//            t.join();
+//        }
+//    }
 
     private Map<String, Object> convertModelsUsingClass(String pathFile, String outPathXMI, String id) throws Exception {
         // String extension = SearchFileTraversal.getExtension(pathFile);

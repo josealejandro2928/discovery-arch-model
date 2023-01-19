@@ -1,8 +1,6 @@
 package org.discover.arch.model;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +13,9 @@ public class SearchFileTraversal {
     String folderOutputName;
     List<String> extensions;
     List<String> searchPaths;
-    String logfilePath;
     Set<String> dataFilesFound = new HashSet<>();
-    List<String> dataFilesError = new ArrayList<>();
     HashMap<String, String> scanningResult = new HashMap<>();
-    private Config configObj = Config.getInstance(null);
+    private final Config configObj = Config.getInstance(null);
 
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
         this.rootPath = rootPath;
@@ -60,14 +56,19 @@ public class SearchFileTraversal {
         for (String pathToFolderModel : rootPathToScan) {
             File file = new File(pathToFolderModel);
             if (!file.isDirectory() || avoidFileNames.contains(file.getName())) continue;
+            int totalFiles = Objects.requireNonNull(file.listFiles()).length;
+            int indexFile = 0;
             for (File childFile : Objects.requireNonNull(file.listFiles())) {
                 try {
-                    System.out.println("Analyzing path: " + childFile);
+                    System.out.println("\033[0;33m" + indexFile + "/" + totalFiles + " ANALYZING PATH: " + childFile + "\033[0m");
                     archModelConverter.analyzeFileAndConvert(childFile.getAbsolutePath());
                 } catch (Exception e) {
                     System.out.println("Error analysing the file: " + childFile);
                     e.printStackTrace();
                 }
+                indexFile++;
+                System.out.println("\033[0;32m" + "MANUAL GARBAGE COLLECTION EXECUTED" + "\033[0m");
+                System.gc();
             }
         }
         long endTime = System.nanoTime();
@@ -103,83 +104,10 @@ public class SearchFileTraversal {
 
     }
 
-
-    public List<String> searchForFiles(boolean storeOnRootPath, boolean verbose) {
-        /// Run a BFS for searching ///
-        int totalFiles = 0;
-        long startTime = System.nanoTime();
-        int delayCache = this.configObj.timeCacheForDiscoveringSearchOverFilesInSeconds;
-        List<String> rootPathToScan = this.searchPaths.stream().filter((x) -> !this.configObj.isInCache(x, delayCache)).toList();
-        Queue<String> queue = new LinkedList<>(rootPathToScan);
-        System.out.println("SCANNING FILES ...");
-        System.out.println(rootPathToScan);
-
-        while (queue.size() > 0) {
-            String pathFileOrArchive = queue.poll();
-            totalFiles++;
-            if (verbose) {
-                System.out.println("Analysing file: " + pathFileOrArchive + " ...");
-            }
-            File file = new File(pathFileOrArchive);
-            if (!this.configObj.getAvoidFileNames().contains(file.getName())) {
-                if (file.isDirectory()) {
-                    try {
-                        for (File childFile : Objects.requireNonNull(file.listFiles())) {
-                            queue.add(childFile.getPath());
-                        }
-                    } catch (Exception e) {
-                        System.err.println("ERROR reading the files of the directory: " + file);
-                        this.dataFilesError.add(file.getPath());
-                    }
-                } else {
-                    String filePath = file.getPath();
-                    String ext = getExtension(filePath);
-                    if (this.extensions.contains(ext)) {
-                        this.dataFilesFound.add(filePath);
-                    }
-                }
-            }
-
-        }
-
-        /////////UPDATING THE CACHE WITH THE ROOTS PATH OF MODELS////////
-        for (String x : rootPathToScan) {
-            this.configObj.putInCache(x);
-        }
-        this.configObj.persistCacheInDisk();
-        ////////////////////////////////////////////////////////////////
-
-        long endTime = System.nanoTime();
-        System.out.println("SCANNING COMPLETED");
-        if (storeOnRootPath) {
-            try {
-                this.logfilePath = Paths.get(this.rootPath, ".files-found.txt").toString();
-                FileWriter myWriter = new FileWriter(this.logfilePath);
-                myWriter.write(String.join("\n", this.dataFilesFound));
-                if (this.dataFilesError.size() > 0) {
-                    myWriter = new FileWriter(Paths.get(this.rootPath, "files-error.txt").toString());
-                    myWriter.write(String.join("\n", this.dataFilesError));
-                }
-                myWriter.close();
-                System.out.println("Successfully wrote to the log of founded files.");
-            } catch (IOException e) {
-                System.err.println("Error saving the logs of files");
-                e.printStackTrace();
-            }
-        }
-
-        double elapsedTime = (double) (endTime - startTime) / 1000000000;
-        this.scanningResult.put("totalFiles", totalFiles + "");
-        this.scanningResult.put("filesMatched", this.dataFilesFound.size() + "");
-        this.scanningResult.put("filesWithErrors", this.dataFilesError.size() + "");
-        this.scanningResult.put("elapsedTime", new DecimalFormat("0.000").format(elapsedTime) + "s");
-        return this.dataFilesFound.stream().toList();
-    }
-
     @Override
     public String toString() {
         return "rootPath: " + this.rootPath + "; " + "searchPaths: " +
-                this.searchPaths + "; " + "exts: " + this.extensions;
+                this.searchPaths + "; " + "ext: " + this.extensions;
 
     }
 
