@@ -3,7 +3,6 @@ var dataOutput = new Map;
 getSizeModel();
 getLabelsAndCategories();
 getMetrics();
-dataOutput.println();
 return dataOutput;
 
 ///////////////// OPERATIONS GO HERE //////////////

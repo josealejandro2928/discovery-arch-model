@@ -64,7 +64,7 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(QueryModel queryModelInst) {
+    void processModels(QueryModel eolBasedModelQuery, QueryModel javaBasedModelQuery) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         int indexFile = 1;
         for (String modelUri : this.uriModels) {
@@ -72,7 +72,9 @@ public class EcoreModelHandler {
                 System.out.println("------------------------------------------------------------------");
 
                 System.out.println("\033[0;33m" + indexFile + "/" + this.uriModels.size() + " URI: " + modelUri + "\033[0m");
-                Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
+                Map<String, Object> data = eolBasedModelQuery.run(modelUri);
+                data = javaBasedModelQuery.run(modelUri, data);
+                System.out.println("Data: " + data);
                 data.put("uri", modelUri);
                 this.processedDataFromModel.put(modelUri, data);
                 System.out.println("------------------------------------------------------------------");
@@ -96,7 +98,9 @@ public class EcoreModelHandler {
             String[] header = {"model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "udy",
-                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp"};
+                    "no_hardware_comp", "no_sys_comp",
+                    "no_software_comp", "no_data_comp",
+                    "coupling", "cohesion"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map elementData : dataSource) {
@@ -134,6 +138,8 @@ public class EcoreModelHandler {
           no_sys_comp:int
           no_software_comp:int
           no_data_comp:int
+          coupling:float
+          cohesion:float
         }
         * */
         List<Map<String, Object>> dataSource;
@@ -156,6 +162,8 @@ public class EcoreModelHandler {
             preData.put("no_sys_comp", 0);
             preData.put("no_software_comp", 0);
             preData.put("no_data_comp", 0);
+            preData.put("coupling", 0);
+            preData.put("cohesion", 0);
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));
@@ -167,6 +175,8 @@ public class EcoreModelHandler {
                 preData.put("no_sys_comp", processedData.get("no_sys"));
                 preData.put("no_software_comp", processedData.get("no_software"));
                 preData.put("no_data_comp", processedData.get("no_data_storage"));
+                preData.put("coupling", processedData.get("coupling"));
+                preData.put("cohesion", processedData.get("cohesion"));
             }
             return preData;
         }).collect(Collectors.toList());
