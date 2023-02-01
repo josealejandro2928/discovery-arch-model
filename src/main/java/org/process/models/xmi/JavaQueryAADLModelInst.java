@@ -3,6 +3,7 @@ package org.process.models.xmi;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.osate.aadl2.instance.ComponentInstance;
 import org.osate.aadl2.instance.ConnectionInstance;
+import org.osate.aadl2.instance.FeatureInstance;
 import org.osate.aadl2.instance.SystemInstance;
 import org.osate.standalone.model.LoadXMIModel;
 
@@ -14,6 +15,8 @@ public class JavaQueryAADLModelInst implements QueryModel {
 
     final String COUPLING = "coupling";
     final String COHESION = "cohesion";
+    final String COMPLEXITY = "complexity";
+    final String GRAPH_DENSITY = "graph_density";
 
     private JavaQueryAADLModelInst() {
     }
@@ -48,7 +51,7 @@ public class JavaQueryAADLModelInst implements QueryModel {
             throw new Exception("Error loading the resource for the given: " + modelPath);
         }
 
-        computeCouplingAndCohesion(resourceModel, dataOutput);
+        computeStructuralMetrics(resourceModel, dataOutput);
 
         return dataOutput;
     }
@@ -57,18 +60,48 @@ public class JavaQueryAADLModelInst implements QueryModel {
      * @param resourceModel The models load in memory
      *                      The computation of coupling is made as: 1 - (1 / no_of_comp)
      *                      The computation of cohesion its returned as: e / (n(n-1))/2
+     *                      The computation of complexity, for every component Sum over all components c(i) = c_input(i) * c_output(i)
      */
-    public void computeCouplingAndCohesion(Resource resourceModel, Map<String, Object> data) {
+    public void computeStructuralMetrics(Resource resourceModel, Map<String, Object> data) {
         SystemInstance sys = (SystemInstance) resourceModel.getContents().get(0);
         List<ComponentInstance> componentInstances = sys.getAllComponentInstances().stream().filter((ComponentInstance x) -> x != sys).toList();
         List<ConnectionInstance> connectionInstances = sys.getAllConnectionInstances();
-        double coupling = 1 - (1 / (double) componentInstances.size());
+
+        ///////////////////// Coupling //////////////////////////////
+        double coupling = 0;
+        for (ComponentInstance c : componentInstances) {
+            List<FeatureInstance> portFeaturePerComponents = c.getAllFeatureInstances();
+            long in_features = portFeaturePerComponents.stream().filter((FeatureInstance fe) -> fe.getDirection().incoming()).count();
+            long out_features = portFeaturePerComponents.stream().filter((FeatureInstance fe) -> fe.getDirection().outgoing()).count();
+            if (in_features + out_features > 0) {
+                coupling += (float) in_features / ((float) out_features + (float) in_features);
+            }
+        }
+        data.put(this.COUPLING, coupling);
+
+        ///////////////////// Cohesion //////////////////////////////
         double n = componentInstances.size();
         double e = connectionInstances.size();
         double totalE = (n * (n - 1)) / 2;
         double cohesion = e / totalE;
-
-        data.put(this.COUPLING, coupling);
         data.put(this.COHESION, cohesion);
+
+        ///////////////////// Computing Complexity //////////////////////////////
+        int complexity = 0;
+        for (ComponentInstance c : componentInstances) {
+            List<FeatureInstance> portFeaturePerComponents = c.getAllFeatureInstances();
+            long in_features = portFeaturePerComponents.stream().filter((FeatureInstance fe) -> fe.getDirection().incoming()).count();
+            long out_features = portFeaturePerComponents.stream().filter((FeatureInstance fe) -> fe.getDirection().outgoing()).count();
+            complexity += in_features * out_features;
+        }
+        data.put(this.COMPLEXITY, complexity);
+
+        ///////////////////// Computing Graph Density //////////////////////////////
+        double graph_density = 0;
+        if (n > 0) {
+            graph_density = (float) e / (float) n;
+        }
+        data.put(this.GRAPH_DENSITY, graph_density);
+
     }
 }

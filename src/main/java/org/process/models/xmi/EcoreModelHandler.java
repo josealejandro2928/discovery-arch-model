@@ -97,13 +97,13 @@ public class EcoreModelHandler {
             CSVWriter writer = new CSVWriter(outputFile);
             String[] header = {"model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design",
-                    "sys_name", "num_comp", "num_conn", "size", "udy",
+                    "sys_name", "num_comp", "num_conn", "size", "understandability",
                     "no_hardware_comp", "no_sys_comp",
                     "no_software_comp", "no_data_comp",
                     "coupling", "cohesion"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
-            for (Map elementData : dataSource) {
+            for (Map<String, Object> elementData : dataSource) {
                 String[] row = new String[header.length];
                 int index = 0;
                 for (String key : header) {
@@ -157,7 +157,7 @@ public class EcoreModelHandler {
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
             preData.put("size", 0);
-            preData.put("udy", 0);
+            preData.put("understandability", 0);
             preData.put("no_hardware_comp", 0);
             preData.put("no_sys_comp", 0);
             preData.put("no_software_comp", 0);
@@ -170,7 +170,7 @@ public class EcoreModelHandler {
                 preData.put("num_comp", processedData.get("components"));
                 preData.put("num_conn", processedData.get("connectors"));
                 preData.put("size", processedData.get("size"));
-                preData.put("udy", processedData.get("udy"));
+                preData.put("understandability", processedData.get("understandability"));
                 preData.put("no_hardware_comp", processedData.get("no_hardware"));
                 preData.put("no_sys_comp", processedData.get("no_sys"));
                 preData.put("no_software_comp", processedData.get("no_software"));

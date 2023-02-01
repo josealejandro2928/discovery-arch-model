@@ -48,14 +48,14 @@ operation getLabelsAndCategories() {
     dataOutput.put("no_sys",counterSystem);
 }
 
+// Computes **Understandability** //.
 operation getMetrics(){
-    // Computes **Understandability** //.
     var n:Real = dataOutput.get("components").asReal();
     var c:Real = dataOutput.get("connectors").asReal();
     var udy:Real = 0;
     if(n > 1){
         udy = c / (n * (n - 1));
     }
-    dataOutput.put("udy",udy);
+    dataOutput.put("understandability",udy);
 }
 //////////////////////////////////////////////////
