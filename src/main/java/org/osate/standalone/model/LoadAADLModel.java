@@ -47,7 +47,8 @@ public class LoadAADLModel implements RawModelLoader {
     public Map<String, Object> loadModel(String pathAADLFileOrDirectory, String pathXMLFile, String id, boolean verbose) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
         Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolveDown(pathAADLFileOrDirectory);
-        List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get("foundFiles");
+        List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get(CrossReferenceResolver.FOUND_FILES);
+        List<String> pathToDocFiles = (List<String>) crossReferenceResolverOut.get(CrossReferenceResolver.DOC_FILES);
         File fileAadl = new File(pathAADLFileOrDirectory);
         File fileXML = new File(pathXMLFile);
         List<OutputLoadedModelSchema> resultOutput = new ArrayList<>();
@@ -140,6 +141,7 @@ public class LoadAADLModel implements RawModelLoader {
         Map<String, Object> dataOutput = new HashMap<>();
         dataOutput.put(this.MODEL_FILES_FOUND, pathToModelsFiles);
         dataOutput.put(this.CONVERTING_OUTPUT, resultOutput);
+        dataOutput.put(this.DOC_FILES, pathToDocFiles);
         return dataOutput;
     }
 

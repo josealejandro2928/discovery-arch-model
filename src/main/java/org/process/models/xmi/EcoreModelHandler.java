@@ -99,7 +99,7 @@ public class EcoreModelHandler {
                     "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "understandability",
                     "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
-                    "coupling", "cohesion", "complexity", "graph_density","graph_str_rep"};
+                    "coupling", "cohesion", "complexity", "graph_density", "graph_str_rep", "doc_files"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map<String, Object> elementData : dataSource) {
@@ -142,19 +142,21 @@ public class EcoreModelHandler {
           "cohesion",
           "complexity",
           "graph_density",
-          "graph_str_rep"}
+          "graph_str_rep",
+          "doc_files"
+          }
         * */
         List<Map<String, Object>> dataSource;
         List<Map<String, Object>> conversionLogs = this.configObj.getConversionLogs();
-        dataSource = conversionLogs.stream().map(x -> {
-            String uriToConvertedModel = (String) x.get("pathXMLFile");
+        dataSource = conversionLogs.stream().map(conversionLogModel -> {
+            String uriToConvertedModel = (String) conversionLogModel.get("pathXMLFile");
             Map<String, Object> preData = new HashMap<>();
-            preData.put("model_name", x.get("modelName"));
-            preData.put("src_path", x.get("pathAADLFile"));
+            preData.put("model_name", conversionLogModel.get("modelName"));
+            preData.put("src_path", conversionLogModel.get("pathAADLFile"));
             preData.put("conv_path", uriToConvertedModel);
-            preData.put("src_ext", x.get("extension"));
-            preData.put("is_parsed", x.get("isParsingSucceeded"));
-            preData.put("is_sys_design", x.get("isSavedTheModel"));
+            preData.put("src_ext", conversionLogModel.get("extension"));
+            preData.put("is_parsed", conversionLogModel.get("isParsingSucceeded"));
+            preData.put("is_sys_design", conversionLogModel.get("isSavedTheModel"));
             preData.put("sys_name", null);
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
@@ -169,6 +171,7 @@ public class EcoreModelHandler {
             preData.put("complexity", 0);
             preData.put("graph_density", 0);
             preData.put("graph_str_rep", "");
+            preData.put("doc_files", String.join(", ", (List<String>) conversionLogModel.get("docFiles")));
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));

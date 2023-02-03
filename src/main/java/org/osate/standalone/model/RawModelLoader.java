@@ -10,5 +10,6 @@ public interface RawModelLoader {
     List<Object> validateModel(Resource[] resources);
     String MODEL_FILES_FOUND = "modelFilesFound";
     String CONVERTING_OUTPUT = "convertingOutput";
+    String DOC_FILES = "docFiles";
 
 }

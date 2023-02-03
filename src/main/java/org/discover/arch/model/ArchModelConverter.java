@@ -219,12 +219,14 @@ public class ArchModelConverter {
         lock.lock();
         try {
             List<String> aadlFiles = (List<String>) dataOutput.get(RawModelLoader.MODEL_FILES_FOUND);
+            List<String> docFiles = (List<String>) dataOutput.get(RawModelLoader.DOC_FILES);
             this.dataModelFiles.addAll(aadlFiles);
-            List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>)
-                    dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
+            List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>) dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
+
             dataOutputConversion.forEach((OutputLoadedModelSchema out) -> {
                 Map<String, Object> dataOutMap = out.toMap();
                 dataOutMap.put("extension", "aadl");
+                dataOutMap.put("docFiles", docFiles);
                 this.conversionOutput.add(out);
                 this.logsOutput.put(new JSONObject(dataOutMap));
             });

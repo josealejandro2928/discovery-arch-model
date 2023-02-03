@@ -6,13 +6,16 @@ import java.io.File;
 import java.util.*;
 
 public class CrossReferenceResolver {
-    static final String FOUND_FILES = "foundFiles";
+    static final String FOUND_FILES = "FOUND_FILES";
+    static final String DOC_FILES = "DOC_FILES";
+    static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "doc", "txt", "docx", "html"));
 
     private static final Config configObj = Config.getInstance("/mnt/DATA/00-GSSI/00-WORK/EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
 
     static Map<String, Object> resolveDown(String path) {
         Map<String, Object> dataOutput = new HashMap<>();
         List<String> foundFiles = new ArrayList<>();
+        List<String> docFiles = new ArrayList<>();
         List<String> extensionsToAnalyze = configObj.getExtensionsForSearching();
         Queue<String> queue = new LinkedList<>(Collections.singletonList(path));
         List<String> avoidFileNames = configObj.getAvoidFileNames();
@@ -37,10 +40,14 @@ public class CrossReferenceResolver {
                 if (extensionsToAnalyze.contains(ext)) {
                     foundFiles.add(filePath);
                 }
+                if (docFilesExtensions.contains(ext)) {
+                    docFiles.add(filePath);
+                }
             }
         }
         /////////// OUTPUT //////////////////
         dataOutput.put(FOUND_FILES, foundFiles);
+        dataOutput.put(DOC_FILES, docFiles);
         return dataOutput;
     }
 
