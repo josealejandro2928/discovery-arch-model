@@ -58,7 +58,7 @@ public class JavaQueryAADLModelInst implements QueryModel {
 
     /**
      * @param resourceModel The models load in memory
-     *                      The computation of coupling is made as: 1 - (1 / no_of_comp)
+     *                      The computation of coupling is made as: in_feature / in_feature + out_feature
      *                      The computation of cohesion its returned as: e / (n(n-1))/2
      *                      The computation of complexity, for every component Sum over all components c(i) = c_input(i) * c_output(i)
      */
@@ -80,10 +80,13 @@ public class JavaQueryAADLModelInst implements QueryModel {
         data.put(this.COUPLING, coupling);
 
         ///////////////////// Cohesion //////////////////////////////
-        double n = componentInstances.size();
-        double e = connectionInstances.size();
+        double n = (float) componentInstances.size();
+        double e = (float) connectionInstances.size();
         double totalE = (n * (n - 1)) / 2;
-        double cohesion = e / totalE;
+        double cohesion = 0;
+        if (totalE > 0.0001)
+            cohesion = e / totalE;
+
         data.put(this.COHESION, cohesion);
 
         ///////////////////// Computing Complexity //////////////////////////////

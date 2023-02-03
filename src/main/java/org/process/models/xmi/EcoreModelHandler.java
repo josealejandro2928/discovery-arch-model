@@ -98,9 +98,8 @@ public class EcoreModelHandler {
             String[] header = {"model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "understandability",
-                    "no_hardware_comp", "no_sys_comp",
-                    "no_software_comp", "no_data_comp",
-                    "coupling", "cohesion"};
+                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
+                    "coupling", "cohesion", "complexity", "graph_density"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map<String, Object> elementData : dataSource) {
@@ -124,23 +123,25 @@ public class EcoreModelHandler {
 
     List<Map<String, Object>> createDataSource() {
         /*
-        { model_name:String
-          src_path:String
-          conv_path:String
-          src_ext:String
-          is_parsed:boolean
-          is_sys_design:boolean
-          sys_name:String
-          num_comp:int
-          num_conn:int
-          size:int
-          no_hardware_comp:int
-          no_sys_comp:int
-          no_software_comp:int
-          no_data_comp:int
-          coupling:float
-          cohesion:float
-        }
+        { "model_name",
+          "src_path",
+          "conv_path",
+          "src_ext",
+          "is_parsed",
+          "is_sys_design",
+          "sys_name",
+          "num_comp",
+          "num_conn",
+          "size",
+          "understandability",
+          "no_hardware_comp",
+          "no_sys_comp",
+          "no_software_comp",
+          "no_data_comp",
+          "coupling",
+          "cohesion",
+          "complexity",
+          "graph_density"}
         * */
         List<Map<String, Object>> dataSource;
         List<Map<String, Object>> conversionLogs = this.configObj.getConversionLogs();
@@ -164,6 +165,8 @@ public class EcoreModelHandler {
             preData.put("no_data_comp", 0);
             preData.put("coupling", 0);
             preData.put("cohesion", 0);
+            preData.put("complexity", 0);
+            preData.put("graph_density", 0);
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));
@@ -177,6 +180,8 @@ public class EcoreModelHandler {
                 preData.put("no_data_comp", processedData.get("no_data_storage"));
                 preData.put("coupling", processedData.get("coupling"));
                 preData.put("cohesion", processedData.get("cohesion"));
+                preData.put("complexity", processedData.get("complexity"));
+                preData.put("graph_density", processedData.get("graph_density"));
             }
             return preData;
         }).collect(Collectors.toList());
@@ -205,7 +210,10 @@ public class EcoreModelHandler {
                     "the category of [\"device\",\"memory\",\"bus\",\"processor\"]");
             dataSource.put("no_software_comp", "The number of component which belong to the " +
                     "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]");
-            dataSource.put("no_data_comp", "The number of component which belong to the category of [\"data\"]");
+            dataSource.put("coupling", "Sum for every component of the number of in_features divided by the (out_features + in_features) : Features are connection to other components");
+            dataSource.put("cohesion", "The computation of cohesion its returned as: e / (n(n-1))/2 where e and n are connections and components respectively");
+            dataSource.put("complexity", "The sum for every component of in_features + out_features");
+            dataSource.put("graph_density", "The graph density is the ratio e / n, where e and n are connections and nodes respectively");
 
             String[] header = {"column", "description"};
             writer.writeNext(header);
