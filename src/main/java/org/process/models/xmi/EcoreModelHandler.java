@@ -199,32 +199,32 @@ public class EcoreModelHandler {
             File file = Paths.get(configObj.getRootPath(), "legends.csv").toFile();
             FileWriter outputFile = new FileWriter(file);
             CSVWriter writer = new CSVWriter(outputFile);
-            Map<String, String> dataSource = new HashMap<>();
-            dataSource.put("model_name", "The name of the model resulting of parsing the file .aadl");
-            dataSource.put("src_path", "The global path where the model[source] was found in the file system");
-            dataSource.put("conv_path", "The global path of the instantiated model converted to XML");
-            dataSource.put("src_ext", "The extension of the model[source] ex: .aadl ");
-            dataSource.put("is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken");
-            dataSource.put("is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model");
-            dataSource.put("sys_name", "The name of the SystemInstance model found");
-            dataSource.put("num_comp", "The number of component of the model: ComponentInstance found");
-            dataSource.put("num_conn", "The number of connections of the model: ConnectionInstance found");
-            dataSource.put("size", "The sum of components and connection");
-            dataSource.put("udy", "The Understandability: The number of connections between components divided by N^2-N, " +
-                    "where N is the number of components");
-            dataSource.put("no_hardware_comp", "The number of component which belong to " +
-                    "the category of [\"device\",\"memory\",\"bus\",\"processor\"]");
-            dataSource.put("no_software_comp", "The number of component which belong to the " +
-                    "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]");
-            dataSource.put("coupling", "Sum for every component of the number of in_features divided by the (out_features + in_features) : Features are connection to other components");
-            dataSource.put("cohesion", "The computation of cohesion its returned as: e / (n(n-1))/2 where e and n are connections and components respectively");
-            dataSource.put("complexity", "The sum for every component of in_features + out_features");
-            dataSource.put("graph_density", "The graph density is the ratio e / n, where e and n are connections and nodes respectively");
+            List<String[]> dataSource = new ArrayList<>();
+            dataSource.add(new String[]{"model_name", "The name of the model resulting of parsing the file .aadl"});
+            dataSource.add(new String[]{"src_path", "The global path where the model[source] was found in the file system"});
+            dataSource.add(new String[]{"conv_path", "The global path of the instantiated model converted to XML"});
+            dataSource.add(new String[]{"src_ext", "The extension of the model[source] ex: .aadl "});
+            dataSource.add(new String[]{"is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken"});
+            dataSource.add(new String[]{"is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model"});
+            dataSource.add(new String[]{"sys_name", "The name of the SystemInstance model found"});
+            dataSource.add(new String[]{"num_comp", "The number of component of the model: ComponentInstance found"});
+            dataSource.add(new String[]{"num_conn", "The number of connections of the model: ConnectionInstance found"});
+            dataSource.add(new String[]{"size", "The sum of components and connection"});
+            dataSource.add(new String[]{"udy", "The Understandability: The number of connections between components divided by N^2-N, " +
+                    "where N is the number of components"});
+            dataSource.add(new String[]{"no_hardware_comp", "The number of component which belong to " +
+                    "the category of [\"device\",\"memory\",\"bus\",\"processor\"]"});
+            dataSource.add(new String[]{"no_software_comp", "The number of component which belong to the " +
+                    "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]"});
+            dataSource.add(new String[]{"coupling", "Sum for every component of the number of in_features divided by the (out_features + in_features) : Features are connection to other components"});
+            dataSource.add(new String[]{"cohesion", "The computation of cohesion its returned as: e / (n(n-1))/2 where e and n are connections and components respectively"});
+            dataSource.add(new String[]{"complexity", "The sum for every component of in_features + out_features"});
+            dataSource.add(new String[]{"graph_density", "The graph density is the ratio e / n, where e and n are connections and nodes respectively"});
+            dataSource.add(new String[]{"graph_str_rep", "The graph string representation of the models"});
 
             String[] header = {"column", "description"};
             writer.writeNext(header);
-            for (String col : dataSource.keySet().stream().sorted().toList()) {
-                String[] row = new String[]{col, dataSource.get(col)};
+            for (String[] row : dataSource) {
                 writer.writeNext(row);
             }
             writer.close();
