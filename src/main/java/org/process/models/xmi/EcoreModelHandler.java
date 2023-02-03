@@ -99,7 +99,7 @@ public class EcoreModelHandler {
                     "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "understandability",
                     "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
-                    "coupling", "cohesion", "complexity", "graph_density"};
+                    "coupling", "cohesion", "complexity", "graph_density","graph_str_rep"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map<String, Object> elementData : dataSource) {
@@ -141,7 +141,8 @@ public class EcoreModelHandler {
           "coupling",
           "cohesion",
           "complexity",
-          "graph_density"}
+          "graph_density",
+          "graph_str_rep"}
         * */
         List<Map<String, Object>> dataSource;
         List<Map<String, Object>> conversionLogs = this.configObj.getConversionLogs();
@@ -167,6 +168,7 @@ public class EcoreModelHandler {
             preData.put("cohesion", 0);
             preData.put("complexity", 0);
             preData.put("graph_density", 0);
+            preData.put("graph_str_rep", "");
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));
@@ -182,6 +184,7 @@ public class EcoreModelHandler {
                 preData.put("cohesion", processedData.get("cohesion"));
                 preData.put("complexity", processedData.get("complexity"));
                 preData.put("graph_density", processedData.get("graph_density"));
+                preData.put("graph_str_rep", processedData.get("graph_str_rep"));
             }
             return preData;
         }).collect(Collectors.toList());

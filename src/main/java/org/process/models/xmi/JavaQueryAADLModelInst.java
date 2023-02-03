@@ -1,13 +1,11 @@
 package org.process.models.xmi;
 
 import org.eclipse.emf.ecore.resource.Resource;
-import org.osate.aadl2.instance.ComponentInstance;
-import org.osate.aadl2.instance.ConnectionInstance;
-import org.osate.aadl2.instance.FeatureInstance;
-import org.osate.aadl2.instance.SystemInstance;
+import org.osate.aadl2.instance.*;
 import org.osate.standalone.model.LoadXMIModel;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class JavaQueryAADLModelInst implements QueryModel {
     private static JavaQueryAADLModelInst INSTANCE = null;
@@ -17,6 +15,7 @@ public class JavaQueryAADLModelInst implements QueryModel {
     final String COHESION = "cohesion";
     final String COMPLEXITY = "complexity";
     final String GRAPH_DENSITY = "graph_density";
+    final String GRAPH_STR_REPRESENTATION = "graph_str_rep";
 
     private JavaQueryAADLModelInst() {
     }
@@ -52,6 +51,7 @@ public class JavaQueryAADLModelInst implements QueryModel {
         }
 
         computeStructuralMetrics(resourceModel, dataOutput);
+        computeGraphMetrics(resourceModel, dataOutput);
 
         return dataOutput;
     }
@@ -105,6 +105,40 @@ public class JavaQueryAADLModelInst implements QueryModel {
             graph_density = (float) e / (float) n;
         }
         data.put(this.GRAPH_DENSITY, graph_density);
+
+    }
+
+    public void computeGraphMetrics(Resource resourceModel, Map<String, Object> data) {
+        SystemInstance sys = (SystemInstance) resourceModel.getContents().get(0);
+        List<ComponentInstance> componentInstances = sys.getAllComponentInstances().stream().filter((ComponentInstance x) -> x != sys).toList();
+        List<ConnectionInstance> connectionInstances = sys.getAllConnectionInstances();
+
+        Function<ComponentInstance, String> tokenForComponents = (ComponentInstance c) -> c.getName() + ":" + c.getCategory().getName();
+        Function<ConnectionInstance, String> tokenForConnection = (ConnectionInstance c) -> {
+            String res = "";
+            int index = 0;
+            for (ConnectionReference cr : c.getConnectionReferences()) {
+                ComponentInstance src = cr.getSource().getComponentInstance();
+                ComponentInstance dst = cr.getDestination().getComponentInstance();
+                if (index < c.getConnectionReferences().size() - 1) {
+                    res += "[" + src.getName() + ":" + src.getCategory().getName() + " -> " + dst.getName() + ":" + dst.getCategory().getName() + "]; ";
+                } else {
+                    res += "[" + src.getName() + ":" + src.getCategory().getName() + " -> " + dst.getName() + ":" + dst.getCategory().getName() + "]";
+                }
+                index++;
+            }
+            return res;
+        };
+
+        String componentsParts = String.join("; ", componentInstances.stream()
+                .map(tokenForComponents).toList());
+
+        String connectionParts = String.join("; ", connectionInstances.stream()
+                .map(tokenForConnection).toList());
+
+        String graphStringRepresentation = componentsParts + "\n" + connectionParts;
+
+        data.put(this.GRAPH_STR_REPRESENTATION, graphStringRepresentation);
 
     }
 }
