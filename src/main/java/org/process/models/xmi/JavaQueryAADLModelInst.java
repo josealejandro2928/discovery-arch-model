@@ -16,6 +16,7 @@ public class JavaQueryAADLModelInst implements QueryModel {
     final String COMPLEXITY = "complexity";
     final String GRAPH_DENSITY = "graph_density";
     final String GRAPH_STR_REPRESENTATION = "graph_str_rep";
+    final String AVG_SHORTEST_PATH = "avg_shortest_path";
 
     private JavaQueryAADLModelInst() {
     }
@@ -50,8 +51,10 @@ public class JavaQueryAADLModelInst implements QueryModel {
             throw new Exception("Error loading the resource for the given: " + modelPath);
         }
 
+        GraphMetricsCalculator graphModelMetricsCalculator = new GraphMetricsCalculator(resourceModel);
         computeStructuralMetrics(resourceModel, dataOutput);
-        computeGraphMetrics(resourceModel, dataOutput);
+        dataOutput.put(this.GRAPH_STR_REPRESENTATION, graphModelMetricsCalculator.getGraphTokens());
+        dataOutput.put(this.AVG_SHORTEST_PATH, graphModelMetricsCalculator.getAvgShortestPath());
 
         return dataOutput;
     }
@@ -108,37 +111,4 @@ public class JavaQueryAADLModelInst implements QueryModel {
 
     }
 
-    public void computeGraphMetrics(Resource resourceModel, Map<String, Object> data) {
-        SystemInstance sys = (SystemInstance) resourceModel.getContents().get(0);
-        List<ComponentInstance> componentInstances = sys.getAllComponentInstances().stream().filter((ComponentInstance x) -> x != sys).toList();
-        List<ConnectionInstance> connectionInstances = sys.getAllConnectionInstances();
-
-        Function<ComponentInstance, String> tokenForComponents = (ComponentInstance c) -> c.getName() + ":" + c.getCategory().getName();
-        Function<ConnectionInstance, String> tokenForConnection = (ConnectionInstance c) -> {
-            String res = "";
-            int index = 0;
-            for (ConnectionReference cr : c.getConnectionReferences()) {
-                ComponentInstance src = cr.getSource().getComponentInstance();
-                ComponentInstance dst = cr.getDestination().getComponentInstance();
-                if (index < c.getConnectionReferences().size() - 1) {
-                    res += "[" + src.getName() + ":" + src.getCategory().getName() + " -> " + dst.getName() + ":" + dst.getCategory().getName() + "]; ";
-                } else {
-                    res += "[" + src.getName() + ":" + src.getCategory().getName() + " -> " + dst.getName() + ":" + dst.getCategory().getName() + "]";
-                }
-                index++;
-            }
-            return res;
-        };
-
-        String componentsParts = String.join("; ", componentInstances.stream()
-                .map(tokenForComponents).toList());
-
-        String connectionParts = String.join("; ", connectionInstances.stream()
-                .map(tokenForConnection).toList());
-
-        String graphStringRepresentation = componentsParts + "\n" + connectionParts;
-
-        data.put(this.GRAPH_STR_REPRESENTATION, graphStringRepresentation);
-
-    }
 }

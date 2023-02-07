@@ -99,7 +99,9 @@ public class EcoreModelHandler {
                     "src_ext", "is_parsed", "is_sys_design",
                     "sys_name", "num_comp", "num_conn", "size", "understandability",
                     "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
-                    "coupling", "cohesion", "complexity", "graph_density", "graph_str_rep", "doc_files"};
+                    "coupling", "cohesion", "complexity", "graph_density", "avg_shortest_path",
+                    "graph_str_rep",
+                    "doc_files"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map<String, Object> elementData : dataSource) {
@@ -143,6 +145,7 @@ public class EcoreModelHandler {
           "complexity",
           "graph_density",
           "graph_str_rep",
+          "avg_shortest_path",
           "doc_files"
           }
         * */
@@ -171,6 +174,7 @@ public class EcoreModelHandler {
             preData.put("complexity", 0);
             preData.put("graph_density", 0);
             preData.put("graph_str_rep", "");
+            preData.put("avg_shortest_path", 0);
             preData.put("doc_files", String.join(", ", (List<String>) conversionLogModel.get("docFiles")));
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
@@ -188,6 +192,7 @@ public class EcoreModelHandler {
                 preData.put("complexity", processedData.get("complexity"));
                 preData.put("graph_density", processedData.get("graph_density"));
                 preData.put("graph_str_rep", processedData.get("graph_str_rep"));
+                preData.put("avg_shortest_path", processedData.get("avg_shortest_path"));
             }
             return preData;
         }).collect(Collectors.toList());
@@ -221,6 +226,7 @@ public class EcoreModelHandler {
             dataSource.add(new String[]{"complexity", "The sum for every component of in_features + out_features"});
             dataSource.add(new String[]{"graph_density", "The graph density is the ratio e / n, where e and n are connections and nodes respectively"});
             dataSource.add(new String[]{"graph_str_rep", "The graph string representation of the models"});
+            dataSource.add(new String[]{"avg_shortest_path", "The distance measure of a source to all other reachable destinations of a complex network used to model the software architecture"});
 
             String[] header = {"column", "description"};
             writer.writeNext(header);
