@@ -17,6 +17,8 @@ public class JavaQueryAADLModelInst implements QueryModel {
     final String GRAPH_DENSITY = "graph_density";
     final String GRAPH_STR_REPRESENTATION = "graph_str_rep";
     final String AVG_SHORTEST_PATH = "avg_shortest_path";
+    final String AVG_CLUSTERING_COEFFICIENT = "avg_clust_coeff";
+    final String AVG_DEGREE_CENTRALITY = "avg_deg_cent";
 
     private JavaQueryAADLModelInst() {
     }
@@ -55,6 +57,8 @@ public class JavaQueryAADLModelInst implements QueryModel {
         computeStructuralMetrics(resourceModel, dataOutput);
         dataOutput.put(this.GRAPH_STR_REPRESENTATION, graphModelMetricsCalculator.getGraphTokens());
         dataOutput.put(this.AVG_SHORTEST_PATH, graphModelMetricsCalculator.getAvgShortestPath());
+        dataOutput.put(this.AVG_CLUSTERING_COEFFICIENT, graphModelMetricsCalculator.getAvgClusteringCoefficient(100));
+        dataOutput.put(this.AVG_DEGREE_CENTRALITY, graphModelMetricsCalculator.getDegreeCentrality());
 
         return dataOutput;
     }

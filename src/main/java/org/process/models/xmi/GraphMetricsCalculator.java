@@ -8,11 +8,11 @@ import org.osate.aadl2.instance.ConnectionReference;
 import org.osate.aadl2.instance.SystemInstance;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class GraphMetricsCalculator {
-    private Map<ComponentInstance, List<ComponentInstance>> graph = new HashMap<>();
+    private Map<ComponentInstance, Set<ComponentInstance>> graph = new HashMap<>();
     Resource resourceModel;
+    List<ComponentInstance> components;
 
     GraphMetricsCalculator(Resource resourceModel) {
         this.resourceModel = resourceModel;
@@ -23,9 +23,8 @@ public class GraphMetricsCalculator {
         this.graph = new HashMap<>();
         SystemInstance rootSysInstance = (SystemInstance) resourceModel.getContents().get(0);
         List<ConnectionInstance> connectionInstances = rootSysInstance.getAllConnectionInstances();
-        List<ComponentInstance> componentInstances = rootSysInstance.getAllComponentInstances().stream().
-                filter((ComponentInstance x) -> x != rootSysInstance).toList();
-        componentInstances.forEach((c) -> this.graph.put((c), new ArrayList<>()));
+        this.components = rootSysInstance.getAllComponentInstances();
+        this.components.forEach((c) -> this.graph.put((c), new HashSet<>()));
 
 
         for (ConnectionInstance connectionInstance : connectionInstances) {
@@ -39,10 +38,9 @@ public class GraphMetricsCalculator {
     }
 
     double getAvgShortestPath() {
-        List<ComponentInstance> components = this.graph.keySet().stream().toList();
-        var n = components.size();
+        var n = this.components.size();
         var total = 0;
-        for (ComponentInstance c : components) {
+        for (ComponentInstance c : this.components) {
             var distanceMap = this.shortestPath(c);
             total += distanceMap.values().stream().reduce(0, (acc, curr) -> {
                 if (curr > -1) acc += curr;
@@ -52,15 +50,43 @@ public class GraphMetricsCalculator {
         return (double) total / ((double) n * (n - 1));
     }
 
+    double getAvgClusteringCoefficient(int trials) {
+        Random random = new Random();
+        double avgClustCoef = 0.0;
+        for (int i = 0; i < trials; i++) {
+            int index = random.nextInt(this.components.size());
+            ComponentInstance pickedComponent = this.components.get(index);
+            List<ComponentInstance> neighbors = this.graph.get(pickedComponent).stream().toList();
+            if (neighbors.size() < 2) continue;
+            var c1 = neighbors.get(random.nextInt(neighbors.size()));
+            var c2 = neighbors.get(random.nextInt(neighbors.size()));
+            while (c1.equals(c2)) {
+                c2 = neighbors.get(random.nextInt(neighbors.size()));
+            }
+            if (graph.get(c1).contains(c2) || graph.get(c2).contains(c1)) {
+                avgClustCoef++;
+            }
+        }
+        return avgClustCoef / trials;
+    }
+
+    double getDegreeCentrality() {
+        double n = this.components.size();
+        double den = (double) n * (n - 1);
+        double num = this.graph.keySet().stream().map((var c) -> this.graph.get(c).size()).reduce(0, Integer::sum);
+        return num / den;
+    }
+
+
     public String getGraphTokens() {
-        List<ComponentInstance> components = new ArrayList<>(this.graph.keySet().stream().toList());
+        List<ComponentInstance> components = new ArrayList<>(this.components);
         components.sort(Comparator.comparing(NamedElement::getName));
         String componentsParts = String.join("; ", components.stream()
                 .map((ComponentInstance c) -> c.getName() + ":" + c.getCategory().getName()).toList());
 
         String connectionParts = "";
         for (ComponentInstance component : components) {
-            List<ComponentInstance> neighbors = this.graph.get(component);
+            Set<ComponentInstance> neighbors = this.graph.get(component);
             if (neighbors == null) continue;
             for (ComponentInstance neigh : neighbors) {
                 connectionParts += "[" + component.getName() + ":" + component.getCategory().getName() + " -> " + neigh.getName() + ":" + neigh.getCategory().getName() + "]; ";
@@ -73,7 +99,7 @@ public class GraphMetricsCalculator {
     private Map<ComponentInstance, Integer> shortestPath(ComponentInstance src) {
         Queue<ComponentInstance> queue = new LinkedList<>();
         Map<ComponentInstance, Integer> dist = new HashMap<>();
-        this.graph.keySet().forEach((c) -> dist.put(c, -1));
+        this.components.forEach((c) -> dist.put(c, -1));
         queue.add(src);
         dist.put(src, 0);
         while (queue.size() > 0) {
