@@ -101,8 +101,7 @@ public class EcoreModelHandler {
                     "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
                     "coupling", "cohesion", "complexity", "graph_density", "avg_shortest_path",
                     "avg_clust_coeff", "avg_deg_cent",
-                    "graph_str_rep",
-                    "doc_files"};
+                    "graph_str_rep"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
             for (Map<String, Object> elementData : dataSource) {
@@ -180,7 +179,7 @@ public class EcoreModelHandler {
             preData.put("avg_shortest_path", 0);
             preData.put("avg_clust_coeff", 0);
             preData.put("avg_deg_cent", 0);
-            preData.put("doc_files", String.join(", ", (List<String>) conversionLogModel.get("docFiles")));
+//            preData.put("doc_files", String.join(", ", (List<String>) conversionLogModel.get("docFiles")));
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));
@@ -235,6 +234,7 @@ public class EcoreModelHandler {
             dataSource.add(new String[]{"graph_str_rep", "The graph string representation of the models"});
             dataSource.add(new String[]{"avg_shortest_path", "The distance measure of a source to all other reachable destinations of a complex network used to model the software architecture"});
             dataSource.add(new String[]{"avg_clust_coeff", "The probability of a node’s neighbors to be neighbors among themselves”. It represents the clustering coefficient of the whole network used to model the software architecture"});
+            dataSource.add(new String[]{"avg_deg_cent", "The degree centrality of the graph based in components and connections"});
 
             String[] header = {"column", "description"};
             writer.writeNext(header);

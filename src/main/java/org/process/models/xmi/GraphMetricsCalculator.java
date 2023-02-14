@@ -47,7 +47,11 @@ public class GraphMetricsCalculator {
                 return acc;
             });
         }
-        return (double) total / ((double) n * (n - 1));
+        int den = (n * (n - 1));
+        if (den > 0) {
+            return (double) total / (double) den;
+        }
+        return 0;
     }
 
     double getAvgClusteringCoefficient(int trials) {
@@ -74,7 +78,10 @@ public class GraphMetricsCalculator {
         double n = this.components.size();
         double den = (double) n * (n - 1);
         double num = this.graph.keySet().stream().map((var c) -> this.graph.get(c).size()).reduce(0, Integer::sum);
-        return num / den;
+        if (den > 0) {
+            return num / den;
+        }
+        return 0;
     }
 
 
@@ -92,7 +99,9 @@ public class GraphMetricsCalculator {
                 connectionParts += "[" + component.getName() + ":" + component.getCategory().getName() + " -> " + neigh.getName() + ":" + neigh.getCategory().getName() + "]; ";
             }
         }
-        connectionParts = connectionParts.substring(0, connectionParts.length() - 2);
+        if (connectionParts.length() >= 2) {
+            connectionParts = connectionParts.substring(0, connectionParts.length() - 2);
+        }
         return componentsParts + "\n" + connectionParts;
     }
 
