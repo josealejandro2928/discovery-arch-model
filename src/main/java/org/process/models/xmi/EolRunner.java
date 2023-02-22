@@ -26,7 +26,6 @@ public class EolRunner implements QueryModel {
      * @param eolScript: Name of the .eol script
      * @param modelPath: Path of the aaxl2 instance model
      * @return Map that contains the result of several metrics computed over the model
-     * @throws Exception
      */
     @Override
     public Map<String, Object> run(String eolScript, String modelPath) throws Exception {

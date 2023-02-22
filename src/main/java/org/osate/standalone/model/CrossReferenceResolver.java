@@ -10,7 +10,7 @@ public class CrossReferenceResolver {
     static final String DOC_FILES = "DOC_FILES";
     static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "doc", "txt", "docx", "html"));
 
-    private static final Config configObj = Config.getInstance("/mnt/DATA/00-GSSI/00-WORK/EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
+    private static final Config configObj = Config.getInstance("../EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
 
     static Map<String, Object> resolveDown(String path) {
         Map<String, Object> dataOutput = new HashMap<>();
