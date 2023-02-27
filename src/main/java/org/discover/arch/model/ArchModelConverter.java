@@ -219,14 +219,14 @@ public class ArchModelConverter {
         lock.lock();
         try {
             List<String> aadlFiles = (List<String>) dataOutput.get(RawModelLoader.MODEL_FILES_FOUND);
-//            List<String> docFiles = (List<String>) dataOutput.get(RawModelLoader.DOC_FILES); // TODO: This is making a big impact in the generation of the json
+            List<String> docFiles = (List<String>) dataOutput.get(RawModelLoader.DOC_FILES); // TODO: This is making a big impact in the generation of the json
             this.dataModelFiles.addAll(aadlFiles);
             List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>) dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
 
             dataOutputConversion.forEach((OutputLoadedModelSchema out) -> {
                 Map<String, Object> dataOutMap = out.toMap();
                 dataOutMap.put("extension", "aadl");
-//                dataOutMap.put("docFiles", docFiles); // TODO: See the way to storage this information wihout impacting the heap memory
+                dataOutMap.put("docFiles", docFiles); // TODO: See the way to storage this information wihout impacting the heap memory
                 this.conversionOutput.add(out);
                 this.logsOutput.put(new JSONObject(dataOutMap));
             });

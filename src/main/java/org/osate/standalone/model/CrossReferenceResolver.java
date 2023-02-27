@@ -8,7 +8,7 @@ import java.util.*;
 public class CrossReferenceResolver {
     static final String FOUND_FILES = "FOUND_FILES";
     static final String DOC_FILES = "DOC_FILES";
-    static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "doc", "txt", "docx", "html"));
+    static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "txt","MD","TXT"));
 
     private static final Config configObj = Config.getInstance("../EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
 
