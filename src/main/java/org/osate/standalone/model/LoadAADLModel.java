@@ -1,6 +1,7 @@
 package org.osate.standalone.model;
 
 import com.google.inject.Injector;
+import org.discover.arch.model.Config;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -44,9 +45,9 @@ public class LoadAADLModel implements RawModelLoader {
         return INSTANCE;
     }
 
-    public Map<String, Object> loadModel(String pathAADLFileOrDirectory, String pathXMLFile, String id, boolean verbose) throws Exception {
+    public Map<String, Object> loadModel(String pathAADLFileOrDirectory, String pathXMLFile, String id, Config configObj) throws Exception {
         XtextResourceSet rs = injector.getInstance(XtextResourceSet.class);
-        Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolveDown(pathAADLFileOrDirectory);
+        Map<String, Object> crossReferenceResolverOut = CrossReferenceResolver.resolveDown(pathAADLFileOrDirectory, configObj);
         List<String> pathToModelsFiles = (List<String>) crossReferenceResolverOut.get(CrossReferenceResolver.FOUND_FILES);
         List<String> pathToDocFiles = (List<String>) crossReferenceResolverOut.get(CrossReferenceResolver.DOC_FILES);
         File fileAadl = new File(pathAADLFileOrDirectory);

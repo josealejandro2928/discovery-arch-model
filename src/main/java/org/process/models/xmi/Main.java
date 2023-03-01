@@ -12,11 +12,11 @@ public class Main {
         }
         System.out.println(configPath);
         try {
-            Config config = Config.getInstance(configPath);
+            Config config = new Config(configPath);
             if (config == null)
                 throw new Exception("The config object cannot be null");
 //            EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
-            EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
+            EcoreModelHandler ecoreModelHandler = new EcoreModelHandler(config);
             EolRunner eolRunner = EolRunner.getInstance();
             JavaQueryAADLModelInst javaQueryAADLModelInst = JavaQueryAADLModelInst.getInstance();
 //            ecoreStandAlone.init();

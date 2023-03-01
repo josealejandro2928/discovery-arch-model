@@ -27,9 +27,10 @@ public class ArchModelConverter {
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
     JSONArray logsOutput = new JSONArray();
     List<OutputLoadedModelSchema> conversionOutput = new ArrayList<>();
-    Config configObj = Config.getInstance(null);
+    Config configObj;
 
-    ArchModelConverter() {
+    ArchModelConverter(Config configObj) {
+        this.configObj = configObj;
         this.rootPath = this.configObj.getRootPath();
         this.extensions = this.configObj.getExtensionsForSearching();
         this.folderOutputName = this.configObj.getOutputFolderName();
@@ -107,7 +108,7 @@ public class ArchModelConverter {
         // String extension = SearchFileTraversal.getExtension(pathFile);
         String extension = "aadl";
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
-        return modelLoader.loadModel(pathFile, outPathXMI, id, false);
+        return modelLoader.loadModel(pathFile, outPathXMI, id, this.configObj);
     }
 
     void loggingConvertingResult() throws Exception {

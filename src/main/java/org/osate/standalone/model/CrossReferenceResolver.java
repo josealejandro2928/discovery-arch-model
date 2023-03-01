@@ -8,11 +8,9 @@ import java.util.*;
 public class CrossReferenceResolver {
     static final String FOUND_FILES = "FOUND_FILES";
     static final String DOC_FILES = "DOC_FILES";
-    static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "txt","MD","TXT"));
+    static final List<String> docFilesExtensions = new ArrayList<>(Arrays.asList("md", "txt", "MD", "TXT"));
 
-    private static final Config configObj = Config.getInstance("../EXAMPLE_ROOT_DIRECTORY_MODELS/config.json");
-
-    static Map<String, Object> resolveDown(String path) {
+    static Map<String, Object> resolveDown(String path, Config configObj) {
         Map<String, Object> dataOutput = new HashMap<>();
         List<String> foundFiles = new ArrayList<>();
         List<String> docFiles = new ArrayList<>();

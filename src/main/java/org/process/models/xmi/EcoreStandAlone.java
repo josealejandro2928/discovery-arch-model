@@ -19,7 +19,7 @@ public class EcoreStandAlone {
     static private EcoreStandAlone INSTANCE = null;
     private ResourceSet resourceSet;
     public LoadXMIModel loadXMIModel = LoadXMIModel.getInstance();
-    private final Config configObj = Config.getInstance(null);
+    private Config configObj;
 
     private EcoreStandAlone() {
 
@@ -34,29 +34,29 @@ public class EcoreStandAlone {
     }
 
 
-    void init() throws Exception {
-        System.out.println("Init ecore standalone");
-        String requiredEcoreDirectoryPath = this.configObj.getEcoreRequiredFilesFolder();
-        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
-        EcorePackage.eINSTANCE.eClass();
-        this.resourceSet = new ResourceSetImpl();
-        System.out.println("Loading the required .ecore modules (aadl2.ecore,aadl2_instance.ecore) and registering them");
-        List<Resource> resources = new ArrayList<>();
-        resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2.ecore").toString()), true));
-        resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2_inst.ecore").toString()), true));
-        for (Resource resource : resources) {
-            EObject eObject = resource.getContents().get(0);
-            if (eObject instanceof EPackage ep) {
-                this.resourceSet.getPackageRegistry().put(ep.getNsURI(), ep);
-            }
-        }
-    }
+//    void init() throws Exception {
+//        System.out.println("Init ecore standalone");
+//        String requiredEcoreDirectoryPath = this.configObj.getEcoreRequiredFilesFolder();
+//        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
+//        EcorePackage.eINSTANCE.eClass();
+//        this.resourceSet = new ResourceSetImpl();
+//        System.out.println("Loading the required .ecore modules (aadl2.ecore,aadl2_instance.ecore) and registering them");
+//        List<Resource> resources = new ArrayList<>();
+//        resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2.ecore").toString()), true));
+//        resources.add(resourceSet.getResource(URI.createFileURI(Paths.get(requiredEcoreDirectoryPath, "aadl2_inst.ecore").toString()), true));
+//        for (Resource resource : resources) {
+//            EObject eObject = resource.getContents().get(0);
+//            if (eObject instanceof EPackage ep) {
+//                this.resourceSet.getPackageRegistry().put(ep.getNsURI(), ep);
+//            }
+//        }
+//    }
 
-    private EObject getEObjectFromResource(Resource resource) throws Exception {
-        if (resource.getContents().size() == 0)
-            throw new Exception("There is not content in the resource loaded");
-        return resource.getContents().get(0);
-    }
+//    private EObject getEObjectFromResource(Resource resource) throws Exception {
+//        if (resource.getContents().size() == 0)
+//            throw new Exception("There is not content in the resource loaded");
+//        return resource.getContents().get(0);
+//    }
 
 
     /**

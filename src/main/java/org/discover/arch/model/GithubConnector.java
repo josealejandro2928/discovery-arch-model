@@ -12,7 +12,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GithubConnector implements ExternalConnector {
-    private Config configObj = Config.getInstance(null);
+    private Config configObj;
+
+    GithubConnector(Config configObj) {
+        this.configObj = configObj;
+    }
 
     @Override
     public MetaData extractMetaData(String externalRepoURL) throws InvalidURLConnectorException {

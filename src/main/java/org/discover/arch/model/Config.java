@@ -2,6 +2,7 @@ package org.discover.arch.model;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,8 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Config {
-    static private Config INSTANCE = null;
-    static String configPath;
+    String configPath;
     private String rootPath;
     private String outputFolderName;
     private String ecoreRequiredFilesFolder;
@@ -31,24 +31,24 @@ public class Config {
     public int timeCacheForPollingFromExternalResources;
 
 
-    private Config(Map<String, Object> data) throws Exception {
-        if (data == null)
-            throw new Exception("In order to load a config a Map should be passed into the constructor");
-        this.rootPath = (String) data.get("rootPath");
-        this.outputFolderName = (String) data.get("outputFolderName");
-        this.archivesForSearching = (List<String>) data.get("archivesForSearching");
-        this.extensionsForSearching = (List<String>) data.get("extensionsForSearching");
-        this.externalResources = (List<String>) data.get("externalResources");
-        this.avoidFileNames = (List<String>) data.get("avoidFileNames");
-        this.ecoreRequiredFilesFolder = (String) data.get("ecoreRequiredFilesFolder");
-        this.timeCacheForDiscoveringSearchOverFilesInSeconds = (Integer) data.get("timeCacheForDiscoveringSearchOverFilesInSeconds");
-        this.timeCacheForPollingFromExternalResources = (Integer) data.get("timeCacheForPollingFromExternalResources");
+    public Config(String configPath) throws Exception {
+        this.configPath = configPath;
+        JSONObject data = loadConfig(configPath);
+        this.configObj = data.toMap();
+        this.rootPath = (String) this.configObj.get("rootPath");
+        this.outputFolderName = (String) this.configObj.get("outputFolderName");
+        this.archivesForSearching = (List<String>) this.configObj.get("archivesForSearching");
+        this.extensionsForSearching = (List<String>) this.configObj.get("extensionsForSearching");
+        this.externalResources = (List<String>) this.configObj.get("externalResources");
+        this.avoidFileNames = (List<String>) this.configObj.get("avoidFileNames");
+        this.ecoreRequiredFilesFolder = (String) this.configObj.get("ecoreRequiredFilesFolder");
+        this.timeCacheForDiscoveringSearchOverFilesInSeconds = (Integer) this.configObj.get("timeCacheForDiscoveringSearchOverFilesInSeconds");
+        this.timeCacheForPollingFromExternalResources = (Integer) this.configObj.get("timeCacheForPollingFromExternalResources");
         this.conversionLogs = new ArrayList<>();
         this.filesFound = new ArrayList<>();
         this.reports = new HashMap<>();
         validate();
         this.loadCache();
-        this.configObj = data;
     }
 
     private void validate() throws Exception {
@@ -57,29 +57,8 @@ public class Config {
             throw new Exception("The rootPath: " + rootPath + " does not exists");
     }
 
-    public static Config getInstance(String configPath) {
-        if (INSTANCE == null) {
-            System.out.println("Loading config once .....");
-            try {
-                JSONObject data = loadConfig(configPath);
-                INSTANCE = new Config(data.toMap());
-                INSTANCE.configPath = configPath;
-                System.out.println("Config parameters: " + INSTANCE.configObj);
-                return INSTANCE;
-            } catch (Exception e) {
-                System.err.println("ERROR LOADING THE CONFIG FILE: " + e.getMessage());
-                e.printStackTrace();
-                return null;
-            }
-        } else {
-            return INSTANCE;
-        }
-    }
-
     static private JSONObject loadConfig(String configJsonPath) throws Exception {
-        if (configJsonPath != null)
-            configPath = configJsonPath;
-        File file = new File(configPath);
+        File file = new File(configJsonPath);
         if (!file.exists())
             throw new Exception("A config.json file path must be provided");
         if (!file.isFile())
@@ -171,6 +150,13 @@ public class Config {
     }
 
     public void createFolderOutput() throws Exception {
+
+        if (this.isInCache("createFolderOutput", this.timeCacheForDiscoveringSearchOverFilesInSeconds)) {
+            System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS:"
+                    + this.timeCacheForDiscoveringSearchOverFilesInSeconds + "s"
+                    + "\033[0m");
+            return;
+        }
         File file = Paths.get(this.rootPath, this.outputFolderName).toFile();
         file.mkdir();
         for (File childFile : Objects.requireNonNull(file.listFiles())) {
@@ -180,6 +166,9 @@ public class Config {
             new File(Paths.get(file.getPath(), ext).toString()).mkdir();
         }
         new File(Paths.get(file.getPath(), "xmi").toString()).mkdir();
+        deleteDirectory(Paths.get(this.rootPath, "github").toAbsolutePath());
+        new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
+        this.putInCache("createFolderOutput");
     }
 
     static void deleteDirectory(Path path) throws IOException {

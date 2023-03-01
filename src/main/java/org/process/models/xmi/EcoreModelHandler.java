@@ -13,26 +13,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EcoreModelHandler {
-    static private EcoreModelHandler INSTANCE = null;
     private List<String> uriModels;
     private String rootPathFolder;
     private final List<String> modelExtension;
     private Map<String, Map<String, Object>> processedDataFromModel;
-    private final Config configObj = Config.getInstance(null);
+    private Config configObj = null;
 
-    private EcoreModelHandler() {
+    public  EcoreModelHandler(Config configObj) {
+        this.configObj = configObj;
         this.uriModels = new ArrayList<>();
         this.modelExtension = Arrays.asList("xml", "xmi", "ecore", "aaxl2");
         this.processedDataFromModel = new HashMap<>();
         this.rootPathFolder = Paths.get(this.configObj.getRootPath(), this.configObj.getOutputFolderName(), "xmi").toString();
-    }
-
-    static EcoreModelHandler getInstance() {
-        if (INSTANCE != null)
-            return INSTANCE;
-        else
-            INSTANCE = new EcoreModelHandler();
-        return INSTANCE;
     }
 
 
