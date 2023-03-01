@@ -13,26 +13,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EcoreModelHandler {
-    static private EcoreModelHandler INSTANCE = null;
     private List<String> uriModels;
     private String rootPathFolder;
     private final List<String> modelExtension;
     private Map<String, Map<String, Object>> processedDataFromModel;
-    private final Config configObj = Config.getInstance(null);
+    private Config configObj = null;
 
-    private EcoreModelHandler() {
+    public  EcoreModelHandler(Config configObj) {
+        this.configObj = configObj;
         this.uriModels = new ArrayList<>();
         this.modelExtension = Arrays.asList("xml", "xmi", "ecore", "aaxl2");
         this.processedDataFromModel = new HashMap<>();
         this.rootPathFolder = Paths.get(this.configObj.getRootPath(), this.configObj.getOutputFolderName(), "xmi").toString();
-    }
-
-    static EcoreModelHandler getInstance() {
-        if (INSTANCE != null)
-            return INSTANCE;
-        else
-            INSTANCE = new EcoreModelHandler();
-        return INSTANCE;
     }
 
 
@@ -64,7 +56,7 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(QueryModel queryModelInst) {
+    void processModels(QueryModel eolBasedModelQuery, QueryModel javaBasedModelQuery) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         int indexFile = 1;
         for (String modelUri : this.uriModels) {
@@ -72,7 +64,9 @@ public class EcoreModelHandler {
                 System.out.println("------------------------------------------------------------------");
 
                 System.out.println("\033[0;33m" + indexFile + "/" + this.uriModels.size() + " URI: " + modelUri + "\033[0m");
-                Map<String, Object> data = (Map<String, Object>) queryModelInst.run(modelUri);
+                Map<String, Object> data = eolBasedModelQuery.run(modelUri);
+                data = javaBasedModelQuery.run(modelUri, data);
+                System.out.println("Data: " + data);
                 data.put("uri", modelUri);
                 this.processedDataFromModel.put(modelUri, data);
                 System.out.println("------------------------------------------------------------------");
@@ -95,11 +89,13 @@ public class EcoreModelHandler {
             CSVWriter writer = new CSVWriter(outputFile);
             String[] header = {"model_name", "src_path", "conv_path",
                     "src_ext", "is_parsed", "is_sys_design",
-                    "sys_name", "num_comp", "num_conn", "size", "udy",
-                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp"};
+                    "sys_name", "num_comp", "num_conn", "size", "understandability",
+                    "no_hardware_comp", "no_sys_comp", "no_software_comp", "no_data_comp",
+                    "coupling", "cohesion", "complexity", "graph_density", "avg_shortest_path", "avg_deg_cent",
+                    "graph_str_rep","doc_files"};
             List<Map<String, Object>> dataSource = this.createDataSource();
             writer.writeNext(header);
-            for (Map elementData : dataSource) {
+            for (Map<String, Object> elementData : dataSource) {
                 String[] row = new String[header.length];
                 int index = 0;
                 for (String key : header) {
@@ -120,53 +116,77 @@ public class EcoreModelHandler {
 
     List<Map<String, Object>> createDataSource() {
         /*
-        { model_name:String
-          src_path:String
-          conv_path:String
-          src_ext:String
-          is_parsed:boolean
-          is_sys_design:boolean
-          sys_name:String
-          num_comp:int
-          num_conn:int
-          size:int
-          no_hardware_comp:int
-          no_sys_comp:int
-          no_software_comp:int
-          no_data_comp:int
-        }
+        { "model_name",
+          "src_path",
+          "conv_path",
+          "src_ext",
+          "is_parsed",
+          "is_sys_design",
+          "sys_name",
+          "num_comp",
+          "num_conn",
+          "size",
+          "understandability",
+          "no_hardware_comp",
+          "no_sys_comp",
+          "no_software_comp",
+          "no_data_comp",
+          "coupling",
+          "cohesion",
+          "complexity",
+          "graph_density",
+          "graph_str_rep",
+          "avg_shortest_path",
+          "avg_deg_cent",
+          "doc_files"
+          }
         * */
         List<Map<String, Object>> dataSource;
         List<Map<String, Object>> conversionLogs = this.configObj.getConversionLogs();
-        dataSource = conversionLogs.stream().map(x -> {
-            String uriToConvertedModel = (String) x.get("pathXMLFile");
+        dataSource = conversionLogs.stream().map(conversionLogModel -> {
+            String uriToConvertedModel = (String) conversionLogModel.get("pathXMLFile");
             Map<String, Object> preData = new HashMap<>();
-            preData.put("model_name", x.get("modelName"));
-            preData.put("src_path", x.get("pathAADLFile"));
+            preData.put("model_name", conversionLogModel.get("modelName"));
+            preData.put("src_path", conversionLogModel.get("pathAADLFile"));
             preData.put("conv_path", uriToConvertedModel);
-            preData.put("src_ext", x.get("extension"));
-            preData.put("is_parsed", x.get("isParsingSucceeded"));
-            preData.put("is_sys_design", x.get("isSavedTheModel"));
+            preData.put("src_ext", conversionLogModel.get("extension"));
+            preData.put("is_parsed", conversionLogModel.get("isParsingSucceeded"));
+            preData.put("is_sys_design", conversionLogModel.get("isSavedTheModel"));
             preData.put("sys_name", null);
             preData.put("num_comp", 0);
             preData.put("num_conn", 0);
             preData.put("size", 0);
-            preData.put("udy", 0);
+            preData.put("understandability", 0);
             preData.put("no_hardware_comp", 0);
             preData.put("no_sys_comp", 0);
             preData.put("no_software_comp", 0);
             preData.put("no_data_comp", 0);
+            preData.put("coupling", 0);
+            preData.put("cohesion", 0);
+            preData.put("complexity", 0);
+            preData.put("graph_density", 0);
+            preData.put("graph_str_rep", "");
+            preData.put("avg_shortest_path", 0);
+            preData.put("avg_deg_cent", 0);
+            preData.put("doc_files", String.join(", ", (List<String>) conversionLogModel.get("docFiles")));
             if (this.processedDataFromModel.containsKey(uriToConvertedModel)) {
                 Map<String, Object> processedData = this.processedDataFromModel.get(uriToConvertedModel);
                 preData.put("sys_name", processedData.get("systemName"));
                 preData.put("num_comp", processedData.get("components"));
                 preData.put("num_conn", processedData.get("connectors"));
                 preData.put("size", processedData.get("size"));
-                preData.put("udy", processedData.get("udy"));
+                preData.put("understandability", processedData.get("understandability"));
                 preData.put("no_hardware_comp", processedData.get("no_hardware"));
                 preData.put("no_sys_comp", processedData.get("no_sys"));
                 preData.put("no_software_comp", processedData.get("no_software"));
                 preData.put("no_data_comp", processedData.get("no_data_storage"));
+                preData.put("coupling", processedData.get("coupling"));
+                preData.put("cohesion", processedData.get("cohesion"));
+                preData.put("complexity", processedData.get("complexity"));
+                preData.put("graph_density", processedData.get("graph_density"));
+                preData.put("graph_str_rep", processedData.get("graph_str_rep"));
+                preData.put("avg_shortest_path", processedData.get("avg_shortest_path"));
+                preData.put("avg_deg_cent", processedData.get("avg_deg_cent"));
             }
             return preData;
         }).collect(Collectors.toList());
@@ -178,29 +198,34 @@ public class EcoreModelHandler {
             File file = Paths.get(configObj.getRootPath(), "legends.csv").toFile();
             FileWriter outputFile = new FileWriter(file);
             CSVWriter writer = new CSVWriter(outputFile);
-            Map<String, String> dataSource = new HashMap<>();
-            dataSource.put("model_name", "The name of the model resulting of parsing the file .aadl");
-            dataSource.put("src_path", "The global path where the model[source] was found in the file system");
-            dataSource.put("conv_path", "The global path of the instantiated model converted to XML");
-            dataSource.put("src_ext", "The extension of the model[source] ex: .aadl ");
-            dataSource.put("is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken");
-            dataSource.put("is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model");
-            dataSource.put("sys_name", "The name of the SystemInstance model found");
-            dataSource.put("num_comp", "The number of component of the model: ComponentInstance found");
-            dataSource.put("num_conn", "The number of connections of the model: ConnectionInstance found");
-            dataSource.put("size", "The sum of components and connection");
-            dataSource.put("udy", "The Understandability: The number of connections between components divided by N^2-N, " +
-                    "where N is the number of components");
-            dataSource.put("no_hardware_comp", "The number of component which belong to " +
-                    "the category of [\"device\",\"memory\",\"bus\",\"processor\"]");
-            dataSource.put("no_software_comp", "The number of component which belong to the " +
-                    "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]");
-            dataSource.put("no_data_comp", "The number of component which belong to the category of [\"data\"]");
+            List<String[]> dataSource = new ArrayList<>();
+            dataSource.add(new String[]{"model_name", "The name of the model resulting of parsing the file .aadl"});
+            dataSource.add(new String[]{"src_path", "The global path where the model[source] was found in the file system"});
+            dataSource.add(new String[]{"conv_path", "The global path of the instantiated model converted to XML"});
+            dataSource.add(new String[]{"src_ext", "The extension of the model[source] ex: .aadl "});
+            dataSource.add(new String[]{"is_parsed", "A boolean value that show if the model could be parsed or not, if it wasn't, model could be broken"});
+            dataSource.add(new String[]{"is_sys_design", "A boolean value that show if in the model[source] there was found a SystemInstance model"});
+            dataSource.add(new String[]{"sys_name", "The name of the SystemInstance model found"});
+            dataSource.add(new String[]{"num_comp", "The number of component of the model: ComponentInstance found"});
+            dataSource.add(new String[]{"num_conn", "The number of connections of the model: ConnectionInstance found"});
+            dataSource.add(new String[]{"size", "The sum of components and connection"});
+            dataSource.add(new String[]{"udy", "The Understandability: The number of connections between components divided by N^2-N, " +
+                    "where N is the number of components"});
+            dataSource.add(new String[]{"no_hardware_comp", "The number of component which belong to " +
+                    "the category of [\"device\",\"memory\",\"bus\",\"processor\"]"});
+            dataSource.add(new String[]{"no_software_comp", "The number of component which belong to the " +
+                    "category of [\"process\",\"thread\",\"subprogram\",\"threadGroup\",\"subprogramGroup\"]"});
+            dataSource.add(new String[]{"coupling", "Sum for every component of the number of in_features divided by the (out_features + in_features) : Features are connection to other components"});
+            dataSource.add(new String[]{"cohesion", "The computation of cohesion its returned as: e / (n(n-1))/2 where e and n are connections and components respectively"});
+            dataSource.add(new String[]{"complexity", "The sum for every component of in_features + out_features"});
+            dataSource.add(new String[]{"graph_density", "The graph density is the ratio e / n, where e and n are connections and nodes respectively"});
+            dataSource.add(new String[]{"graph_str_rep", "The graph string representation of the models"});
+            dataSource.add(new String[]{"avg_shortest_path", "The distance measure of a source to all other reachable destinations of a complex network used to model the software architecture"});
+            dataSource.add(new String[]{"avg_deg_cent", "The degree centrality of the graph based in components and connections"});
 
             String[] header = {"column", "description"};
             writer.writeNext(header);
-            for (String col : dataSource.keySet().stream().sorted().toList()) {
-                String[] row = new String[]{col, dataSource.get(col)};
+            for (String[] row : dataSource) {
                 writer.writeNext(row);
             }
             writer.close();

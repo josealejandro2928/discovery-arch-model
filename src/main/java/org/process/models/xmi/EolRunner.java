@@ -7,6 +7,7 @@ import org.eclipse.epsilon.emc.emf.EmfModel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class EolRunner implements QueryModel {
     private static EolRunner INSTANCE = null;
@@ -25,10 +26,9 @@ public class EolRunner implements QueryModel {
      * @param eolScript: Name of the .eol script
      * @param modelPath: Path of the aaxl2 instance model
      * @return Map that contains the result of several metrics computed over the model
-     * @throws Exception
      */
     @Override
-    public Object run(String eolScript, String modelPath) throws Exception {
+    public Map<String, Object> run(String eolScript, String modelPath) throws Exception {
         if (eolScript == null)
             eolScript = "main";
         EolModule module = new EolModule();
@@ -38,11 +38,16 @@ public class EolRunner implements QueryModel {
         EmfModel model = createEmfModel("ModelImpl", modelPath, metaModelPath, true, false);
         module.parse(new File(eolPath));
         module.getContext().getModelRepository().addModel(model);
-        return module.execute();
+        return (Map<String, Object>) module.execute();
     }
 
     @Override
-    public Object run(String modelPath) throws Exception {
+    public  Map<String, Object> run(String modelPath) throws Exception {
+        return this.run("main", modelPath);
+    }
+
+    @Override
+    public  Map<String, Object> run(String modelPath, Map<String, Object> data) throws Exception {
         return this.run("main", modelPath);
     }
 

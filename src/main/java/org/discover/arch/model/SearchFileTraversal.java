@@ -15,7 +15,7 @@ public class SearchFileTraversal {
     List<String> searchPaths;
     Set<String> dataFilesFound = new HashSet<>();
     HashMap<String, String> scanningResult = new HashMap<>();
-    private final Config configObj = Config.getInstance(null);
+    private Config configObj = null;
 
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
         this.rootPath = rootPath;
@@ -24,7 +24,8 @@ public class SearchFileTraversal {
         this.folderOutputName = folderOutputName;
     }
 
-    SearchFileTraversal() {
+    SearchFileTraversal(Config configObj) {
+        this.configObj = configObj;
         this.rootPath = this.configObj.getRootPath();
         this.searchPaths = this.configObj.getArchivesForSearching();
         this.extensions = this.configObj.getExtensionsForSearching();

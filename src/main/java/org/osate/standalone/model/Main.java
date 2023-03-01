@@ -1,9 +1,12 @@
 package org.osate.standalone.model;
 
+import org.discover.arch.model.Config;
 import org.discover.arch.model.OutputLoadedModelSchema;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+
+import java.nio.file.Paths;
 
 public class Main {
     static String URI_XMI_MODEL = "";
@@ -13,11 +16,11 @@ public class Main {
         LoadXMIModel loadXMIModel = LoadXMIModel.getInstance();
         LoadAADLModel loadAADLModel = LoadAADLModel.getInstance();
         try {
+            Config config = new Config(Paths.get("../EXAMPLE_ROOT_DIRECTORY_MODELS/config.json").toAbsolutePath().toString());
             if (args.length == 0)
                 throw new Exception("The global path to the xmi file is needed");
-            String modelPath = args[0];
-            boolean isAadl = args[1].contains("aadl");
-            boolean isXMI = args[1].contains("aaxl2");
+            boolean isAadl = args[0].contains("aadl");
+            boolean isXMI = args[0].contains("aaxl2");
             URI_XMI_MODEL = args[0];
             URI_AADL_MODEL = args[0];
             if (isXMI) {
@@ -32,7 +35,7 @@ public class Main {
             if (isAadl) {
                 System.out.println(URI_AADL_MODEL);
                 Object outputSchema = loadAADLModel.loadModel(URI_AADL_MODEL,
-                        "src/main/java/org/osate/standalone/model/example_models/", "5", false);
+                        "src/main/java/org/osate/standalone/model/example_models/", "5", config);
                 if (outputSchema instanceof Iterable<?>) {
                     System.out.println(outputSchema);
                 } else {

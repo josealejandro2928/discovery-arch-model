@@ -7,12 +7,13 @@ import java.util.*;
 public class ResourcesProviderAnalyzer {
     private List<String> fileResourcePaths;
     private final List<String> externalResourcePaths;
-    Config configObj = Config.getInstance(null);
+    Config configObj;
     Map<String, ExternalConnector> externalConnectorMap = new HashMap<>();
 
 
-    ResourcesProviderAnalyzer() throws Exception {
-        this.externalConnectorMap.put("github", new GithubConnector());
+    ResourcesProviderAnalyzer(Config configObj) throws Exception {
+        this.configObj = configObj;
+        this.externalConnectorMap.put("github", new GithubConnector(this.configObj));
         this.fileResourcePaths = this.configObj.getArchivesForSearching();
         this.externalResourcePaths = this.configObj.getExternalResources();
         this.validateExternalPaths();

@@ -10,18 +10,19 @@ public class Main {
         if (args.length > 0) {
             configPath = args[0];
         }
+        System.out.println(configPath);
         try {
-            Config config = Config.getInstance(configPath);
+            Config config = new Config(configPath);
             if (config == null)
                 throw new Exception("The config object cannot be null");
-            EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
-            EcoreModelHandler ecoreModelHandler = EcoreModelHandler.getInstance();
+//            EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
+            EcoreModelHandler ecoreModelHandler = new EcoreModelHandler(config);
             EolRunner eolRunner = EolRunner.getInstance();
             JavaQueryAADLModelInst javaQueryAADLModelInst = JavaQueryAADLModelInst.getInstance();
 //            ecoreStandAlone.init();
             ecoreModelHandler.discoverModelFromPath();
             config.loadJSONFilesGeneratedByDiscoveringPhase();
-            ecoreModelHandler.processModels(eolRunner);
+            ecoreModelHandler.processModels(eolRunner,javaQueryAADLModelInst);
 //            ecoreModelHandler.processModels(javaQueryAADLModelInst);
             ecoreModelHandler.generateCSVFileFromProcessedModels("results");
         } catch (Exception e) {

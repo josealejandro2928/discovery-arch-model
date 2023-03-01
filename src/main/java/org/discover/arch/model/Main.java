@@ -12,9 +12,7 @@ public class Main {
         }
         Config config = null;
         try {
-            config = Config.getInstance(configPath);
-            if (config == null)
-                throw new Exception("THE provided path to the config.json file is incorrect or corrupted");
+            config = new Config(configPath);
         } catch (Exception e) {
             System.err.println("ERROR LOADING THE CONFIG FILE: " + e.getMessage());
             return;
@@ -25,10 +23,10 @@ public class Main {
 
             System.out.println("*********************STAGE 1********************");
             System.out.println("ANALYZING THE RESOURCES PATHS");
-            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer();
+            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer(config);
             List<String> rootPathToAnalyze = resourcesProviderAnalyzer.getFileResourcePaths();
-            SearchFileTraversal fileDiscover = new SearchFileTraversal().setSearchPaths(rootPathToAnalyze);
-            ArchModelConverter archModelConverter = new ArchModelConverter();
+            SearchFileTraversal fileDiscover = new SearchFileTraversal(config).setSearchPaths(rootPathToAnalyze);
+            ArchModelConverter archModelConverter = new ArchModelConverter(config);
             fileDiscover.analyseModels(archModelConverter);
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());

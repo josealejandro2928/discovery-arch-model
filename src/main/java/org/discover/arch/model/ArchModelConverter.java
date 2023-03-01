@@ -27,9 +27,10 @@ public class ArchModelConverter {
     HashMap<String, Object> converterModelClassMap = new HashMap<>();
     JSONArray logsOutput = new JSONArray();
     List<OutputLoadedModelSchema> conversionOutput = new ArrayList<>();
-    Config configObj = Config.getInstance(null);
+    Config configObj;
 
-    ArchModelConverter() {
+    ArchModelConverter(Config configObj) {
+        this.configObj = configObj;
         this.rootPath = this.configObj.getRootPath();
         this.extensions = this.configObj.getExtensionsForSearching();
         this.folderOutputName = this.configObj.getOutputFolderName();
@@ -107,11 +108,11 @@ public class ArchModelConverter {
         // String extension = SearchFileTraversal.getExtension(pathFile);
         String extension = "aadl";
         RawModelLoader modelLoader = (RawModelLoader) this.converterModelClassMap.get(extension);
-        return modelLoader.loadModel(pathFile, outPathXMI, id, false);
+        return modelLoader.loadModel(pathFile, outPathXMI, id, this.configObj);
     }
 
     void loggingConvertingResult() throws Exception {
-        String jsonStr = this.logsOutput.toString(2);
+        String jsonStr = this.logsOutput.toString(2); //TODO: This is impacting the heap memory
         try {
             FileWriter fw = new FileWriter(Paths.get(this.rootPath, this.folderOutputName, "conversion-logs.json").toString());
             fw.write(jsonStr);
@@ -219,12 +220,14 @@ public class ArchModelConverter {
         lock.lock();
         try {
             List<String> aadlFiles = (List<String>) dataOutput.get(RawModelLoader.MODEL_FILES_FOUND);
+            List<String> docFiles = (List<String>) dataOutput.get(RawModelLoader.DOC_FILES); // TODO: This is making a big impact in the generation of the json
             this.dataModelFiles.addAll(aadlFiles);
-            List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>)
-                    dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
+            List<OutputLoadedModelSchema> dataOutputConversion = (List<OutputLoadedModelSchema>) dataOutput.get(RawModelLoader.CONVERTING_OUTPUT);
+
             dataOutputConversion.forEach((OutputLoadedModelSchema out) -> {
                 Map<String, Object> dataOutMap = out.toMap();
                 dataOutMap.put("extension", "aadl");
+                dataOutMap.put("docFiles", docFiles); // TODO: See the way to storage this information wihout impacting the heap memory
                 this.conversionOutput.add(out);
                 this.logsOutput.put(new JSONObject(dataOutMap));
             });
