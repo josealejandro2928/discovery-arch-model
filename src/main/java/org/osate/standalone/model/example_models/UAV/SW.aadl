@@ -337,7 +337,7 @@ public
 			const is_latched : bool = Get_Property(this, CASE_Properties::Monitor_Latched);
 			-- Monitor policy (models the expected behavior in terms of the input ports)
 			-- AutomationResponse (resp) occurs within two scheduling cycles after AutomationRequest (reqt)
-			const nMonitorInvocations : int = 10; -- user-defined value for "days"
+			const nMonitorInvocations : int = 10; -- userModel-defined value for "days"
 			const FAIL : int = nMonitorInvocations + 1;
 			fun Inc (x:int) : int = if x < nMonitorInvocations then x+1 else FAIL;
 			-- init is used to model first cycle behavior

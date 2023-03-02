@@ -21,6 +21,7 @@ public class ErrorHandler implements HttpHandler {
         try {
             handler.handle(exchange);
         } catch (Exception e){
+            System.err.println(e);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             OutputStream os = exchange.getResponseBody();
             ServerError error = new ServerError(e);

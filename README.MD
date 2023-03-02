@@ -38,7 +38,7 @@ models are stored in memory and in a .txt file named "files-found.txt".
 Once you get the list of model paths, the parsing, and conversion into XML starts. 
 The class ArchModelConverter takes the list and gets the RawModelLoader Instance that 
 map to the extension for the conversion. The subsequent new converted model is stored 
-in the disk in the path configured by the user. Bellow some examples
+in the disk in the path configured by the userModel. Bellow some examples
 ```java
 ArchModelConverter(String rootPath) throws Exception {
     File file = new File(rootPath);

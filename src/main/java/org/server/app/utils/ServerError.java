@@ -3,6 +3,7 @@ package org.server.app.utils;
 import java.io.IOException;
 import java.util.*;
 
+
 public class ServerError extends IOException {
     int code;
     List<Object> meta;
@@ -11,6 +12,12 @@ public class ServerError extends IOException {
         super(message);
         this.code = code;
         this.meta = meta == null ? new ArrayList<>() : meta;
+    }
+
+    public ServerError(int code, String message) {
+        super(message);
+        this.code = code;
+        this.meta = new ArrayList<>();
     }
 
     ServerError(Exception e) {

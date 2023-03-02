@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.server.app.utils.ServerError;
 
 public class HomeHandler implements HttpHandler {
@@ -18,6 +19,7 @@ public class HomeHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+        System.out.println(System.getenv("ROOT_STORAGE"));
         Map<String, Object> data = new HashMap<>();
         data.put("hello", "world");
         String response = objectMapper.writeValueAsString(data);
