@@ -1,6 +1,8 @@
 package org.server.app.handlers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.sun.net.httpserver.HttpHandler;
 import dev.morphia.Datastore;
 import dev.morphia.query.experimental.filters.Filters;
@@ -38,11 +40,27 @@ public class AuthHandler {
             if (!body.containsKey("password")) errors.add("password must be provided");
             if (errors.size() > 0)
                 throw new ServerError(401, "Invalid user authentication", Collections.singletonList(errors));
-            String token = String.format("Bearer: %s", body.get("email"));
-            response.put("username", body.get("email"));
-            response.put("token", token);
+            MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
+            Datastore datastore = mongoDbConnection.datastore;
+            UserModel user = datastore.find(UserModel.class).filter(Filters.eq("email", body.get("email"))).first();
 
+            if (user == null) throw new ServerError(401, "invalid email");
+            try {
+                if (!user.verifyPassword((String) body.get("password")))
+                    throw new ServerError(401, "Invalid password");
+            } catch (NoSuchAlgorithmException e) {
+                throw new ServerError(401, e.getMessage());
+            }
+
+            String jwt = AuthHandler.createJWT(user.getId(), 1000 * 60);
+            String token = String.format("Bearer: %s", jwt);
+            Map<String, Object> userToClient = objectMapper.convertValue(user, new TypeReference<>() {
+            });
+            userToClient.remove("password");
+            response.put("user", userToClient);
+            response.put("token", token);
             String responseStr = objectMapper.writeValueAsString(response);
+
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, responseStr.length());
             OutputStream os = exchange.getResponseBody();
@@ -73,7 +91,7 @@ public class AuthHandler {
             } catch (NoSuchAlgorithmException e) {
                 throw new ServerError(500, e.getMessage());
             }
-            ConfigUserModel configUserModel =  AuthHandler.initUserDirectory(userModel);
+            ConfigUserModel configUserModel = AuthHandler.initUserDirectory(userModel);
             Map<String, Object> data = new HashMap<>();
             data.put("user", userModel);
             data.put("config", configUserModel);
@@ -89,12 +107,12 @@ public class AuthHandler {
         }
     };
 
-    static ConfigUserModel initUserDirectory(UserModel userModel) throws IOException {
+    public static ConfigUserModel initUserDirectory(UserModel userModel) throws IOException {
         CustomMapMapper objectMapper = new CustomMapMapper();
         MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
         Datastore datastore = mongoDbConnection.datastore;
         ConfigServer configServer = ConfigServer.getInstance();
-        Path directoryPath = Paths.get(configServer.dotenv.get("ROOT_STORAGE"), userModel.getEmail()).toAbsolutePath();
+        Path directoryPath = Paths.get(Objects.requireNonNull(configServer.dotenv.get("ROOT_STORAGE")), userModel.getEmail()).toAbsolutePath();
         File file = new File(directoryPath.toString());
         ConfigUserModel configUserModel;
         if (file.exists()) {
@@ -115,6 +133,32 @@ public class AuthHandler {
         fw.write(configJsonStr);
         fw.close();
         return configUserModel;
+    }
+
+    public static String createJWT(String userId, long ttlMillis) {
+        ConfigServer configServer = ConfigServer.getInstance();
+        long nowMillis = System.currentTimeMillis();
+        String secretKey = configServer.dotenv.get("SECRET_KEY");
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        Map<String, Object> headerClaims = new HashMap<>();
+        headerClaims.put("alg", "HS256");
+        headerClaims.put("typ", "JWT");
+
+        Map<String, Object> payloadClaims = new HashMap<>();
+        payloadClaims.put("userId", userId);
+
+        long expMillis = nowMillis + ttlMillis;
+        Date exp = new Date(expMillis);
+
+        String token = JWT.create()
+                .withHeader(headerClaims)
+                .withIssuer("auth0")
+                .withSubject("JWT token")
+                .withExpiresAt(exp)
+                .withClaim("payload", payloadClaims)
+                .sign(algorithm);
+
+        return token;
     }
 
 }

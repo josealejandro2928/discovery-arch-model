@@ -114,4 +114,5 @@ public class UserModel {
         String newHash = hashPassword(password, new byte[16]);
         return Arrays.equals(this.password.getBytes(), newHash.getBytes());
     }
+
 }
