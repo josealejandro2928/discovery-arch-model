@@ -9,7 +9,7 @@ public class ConfigServer {
     public Dotenv dotenv;
 
     private ConfigServer() {
-        this.dotenv = Dotenv.configure().directory(Paths.get("resources").toAbsolutePath().toString()).load();
+        this.dotenv = Dotenv.configure().directory(Paths.get("").toAbsolutePath().toString()).load();
     }
 
     public static ConfigServer getInstance() {

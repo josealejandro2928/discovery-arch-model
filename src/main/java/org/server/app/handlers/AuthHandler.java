@@ -52,7 +52,7 @@ public class AuthHandler {
                 throw new ServerError(401, e.getMessage());
             }
 
-            String jwt = AuthHandler.createJWT(user.getId(), 1000 * 60);
+            String jwt = AuthHandler.createJWT(user.getId(), 1000 * 60 * 60);
             String token = String.format("Bearer: %s", jwt);
             Map<String, Object> userToClient = objectMapper.convertValue(user, new TypeReference<>() {
             });
@@ -140,25 +140,18 @@ public class AuthHandler {
         long nowMillis = System.currentTimeMillis();
         String secretKey = configServer.dotenv.get("SECRET_KEY");
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
-        Map<String, Object> headerClaims = new HashMap<>();
-        headerClaims.put("alg", "HS256");
-        headerClaims.put("typ", "JWT");
-
         Map<String, Object> payloadClaims = new HashMap<>();
         payloadClaims.put("userId", userId);
 
         long expMillis = nowMillis + ttlMillis;
         Date exp = new Date(expMillis);
 
-        String token = JWT.create()
-                .withHeader(headerClaims)
+        return JWT.create()
                 .withIssuer("auth0")
                 .withSubject("JWT token")
                 .withExpiresAt(exp)
                 .withClaim("payload", payloadClaims)
                 .sign(algorithm);
-
-        return token;
     }
 
 }

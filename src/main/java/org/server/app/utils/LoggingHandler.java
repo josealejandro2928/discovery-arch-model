@@ -5,11 +5,11 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 
-public class LoggingHandler implements HttpHandler {
-    private final HttpHandler handler;
+public class LoggingHandler extends HandlerMiddleware {
+    private HttpHandler innerHandler;
 
     public LoggingHandler(HttpHandler handler) {
-        this.handler = handler;
+        this.innerHandler = handler;
     }
 
     @Override
@@ -18,14 +18,18 @@ public class LoggingHandler implements HttpHandler {
         String requestURI = exchange.getRequestURI().toString();
         long startTime = System.nanoTime();
         // Call actual handler
-        handler.handle(exchange);
+        innerHandler.handle(exchange);
         long endTime = System.nanoTime();
         double elapsedTime = (double) (endTime - startTime) / 1000000;
         int responseCode = exchange.getResponseCode();
         String contentLength = exchange.getResponseHeaders().get("Content-Length").toString();
         System.out.println(String.format("\u001B[33m Info:\u001B[0m %s %s %s %s ms - res:%s \u001B[0m",
-                requestMethod, requestURI, this.getStatusCode(responseCode),(int)elapsedTime,contentLength));
+                requestMethod, requestURI, this.getStatusCode(responseCode), (int) elapsedTime, contentLength));
+    }
 
+    @Override
+    public void setInnerHandler(HttpHandler innerHandler) {
+        this.innerHandler = innerHandler;
     }
 
     String getStatusCode(int code) {

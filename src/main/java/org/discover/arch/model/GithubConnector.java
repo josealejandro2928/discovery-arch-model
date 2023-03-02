@@ -46,7 +46,7 @@ public class GithubConnector implements ExternalConnector {
                     .setURI(metaData.downloadablePath)
                     .setDirectory(clonedDirectory)
                     .call();
-            cleaningAfterDownloadFinished(clonedDirectory.getAbsolutePath());
+//            cleaningAfterDownloadFinished(clonedDirectory.getAbsolutePath());
             System.out.println("FINISH OF CLONING REPOSITORY: " + metaData.downloadablePath);
             configObj.putInCache(externalRepoURL);
             configObj.addMoreArchivesForSearching(directoryPath);
