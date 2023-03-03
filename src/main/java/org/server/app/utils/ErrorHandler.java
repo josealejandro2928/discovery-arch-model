@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 public class ErrorHandler implements HttpHandler {
 
     private final HttpHandler handler;
-    private final ObjectMapper objectMapper = new CustomMapMapper();
+    private static final ObjectMapper objectMapper = CustomMapMapper.getInstance();
 
     public ErrorHandler(HttpHandler handler) {
         this.handler = handler;

@@ -1,4 +1,4 @@
-package org.server.app.handlers;
+package org.server.app.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class NotFoundHandler implements HttpHandler {
-    private final ObjectMapper objectMapper = new CustomMapMapper();
+    private static final ObjectMapper objectMapper = CustomMapMapper.getInstance();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {

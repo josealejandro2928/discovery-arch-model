@@ -1,23 +1,15 @@
 package org.server.app;
 
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
 import org.server.app.data.MongoDbConnection;
-import org.server.app.handlers.NotFoundHandler;
+import org.server.app.utils.NotFoundHandler;
 import org.server.app.routes.AuthRoute;
 import org.server.app.routes.HomeRoute;
 import org.server.app.utils.ConfigServer;
 import org.server.app.utils.HandlerBuilder;
-import io.github.cdimascio.dotenv.Dotenv;
-
-import java.io.IOException;
 
 public class ServerApp {
     public static void main(String[] args) throws Exception {

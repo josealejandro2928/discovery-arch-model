@@ -1,16 +1,11 @@
-package org.server.app.handlers;
+package org.server.app.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
-import com.opencsv.exceptions.CsvValidationException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dev.morphia.Datastore;
 import org.server.app.data.ConfigUserModel;
-import org.server.app.data.MongoDbConnection;
-import org.server.app.data.UserModel;
 import org.server.app.utils.CustomMapMapper;
 import org.server.app.utils.ServerError;
 
@@ -19,8 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class ReportsHandler {
-    private final CustomMapMapper objectMapper = new CustomMapMapper();
+public class ReportsController {
+    private static final CustomMapMapper objectMapper = CustomMapMapper.getInstance();
 
     public HttpHandler reportHandler = exchange -> {
         String method = exchange.getRequestMethod();

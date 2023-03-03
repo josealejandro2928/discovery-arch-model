@@ -1,4 +1,4 @@
-package org.server.app.handlers;
+package org.server.app.controllers;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -18,15 +18,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class AuthHandler {
-    private final CustomMapMapper objectMapper = new CustomMapMapper();
+public class AuthController {
+    private static final CustomMapMapper objectMapper = CustomMapMapper.getInstance();
 
 
     public HttpHandler loginHandler = exchange -> {
@@ -52,7 +51,7 @@ public class AuthHandler {
                 throw new ServerError(401, e.getMessage());
             }
 
-            String jwt = AuthHandler.createJWT(user.getId(), 1000 * 60 * 60);
+            String jwt = AuthController.createJWT(user.getId(), 1000 * 60 * 60);
             String token = String.format("Bearer: %s", jwt);
             Map<String, Object> userToClient = objectMapper.convertValue(user, new TypeReference<>() {
             });
@@ -91,7 +90,7 @@ public class AuthHandler {
             } catch (NoSuchAlgorithmException e) {
                 throw new ServerError(500, e.getMessage());
             }
-            ConfigUserModel configUserModel = AuthHandler.initUserDirectory(userModel);
+            ConfigUserModel configUserModel = AuthController.initUserDirectory(userModel);
             Map<String, Object> data = new HashMap<>();
             data.put("user", userModel);
             data.put("config", configUserModel);
@@ -108,7 +107,6 @@ public class AuthHandler {
     };
 
     public static ConfigUserModel initUserDirectory(UserModel userModel) throws IOException {
-        CustomMapMapper objectMapper = new CustomMapMapper();
         MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
         Datastore datastore = mongoDbConnection.datastore;
         ConfigServer configServer = ConfigServer.getInstance();

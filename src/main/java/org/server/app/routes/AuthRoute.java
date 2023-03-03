@@ -2,8 +2,7 @@ package org.server.app.routes;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.server.app.handlers.HomeHandler;
-import org.server.app.handlers.AuthHandler;
+import org.server.app.controllers.AuthController;
 import org.server.app.utils.HandlerBuilder;
 
 public class AuthRoute {
@@ -16,9 +15,9 @@ public class AuthRoute {
     }
 
     public void registerRoutes() {
-        AuthHandler authHandler = new AuthHandler();
-        HttpHandler loginHandler = new HandlerBuilder(authHandler.loginHandler).build();
-        HttpHandler signinHandler = new HandlerBuilder(authHandler.signInHandler).build();
+        AuthController authController = new AuthController();
+        HttpHandler loginHandler = new HandlerBuilder(authController.loginHandler).build();
+        HttpHandler signinHandler = new HandlerBuilder(authController.signInHandler).build();
         this.server.createContext(basePath + "/login", loginHandler);
         this.server.createContext(basePath + "/signin", signinHandler);
     }

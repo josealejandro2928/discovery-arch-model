@@ -40,7 +40,7 @@ public class GithubConnector implements ExternalConnector {
         MetaData metaData = this.extractMetaData(externalRepoURL);
         File clonedDirectory = Paths.get(directoryPath, metaData.name).toFile();
         try {
-            this.deleteBeforeLoading(clonedDirectory.getAbsolutePath());
+//            this.deleteBeforeLoading(clonedDirectory.getAbsolutePath());
             System.out.println("CLONING REPOSITORY: " + metaData.downloadablePath);
             Git.cloneRepository()
                     .setURI(metaData.downloadablePath)

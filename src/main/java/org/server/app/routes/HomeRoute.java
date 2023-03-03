@@ -2,12 +2,11 @@ package org.server.app.routes;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.server.app.handlers.HomeHandler;
-import org.server.app.handlers.ModelRepositoryHandler;
-import org.server.app.handlers.ReportsHandler;
+import org.server.app.controllers.HomeController;
+import org.server.app.controllers.ModelRepositoryController;
+import org.server.app.controllers.ReportsController;
 import org.server.app.utils.AuthorizationHandler;
 import org.server.app.utils.HandlerBuilder;
-import org.server.app.utils.HandlerMiddleware;
 
 public class HomeRoute {
     private final HttpServer server;
@@ -19,22 +18,29 @@ public class HomeRoute {
     }
 
     public void registerRoutes() {
-        HttpHandler homeHandler = new HandlerBuilder(new HomeHandler()).build();
-        ModelRepositoryHandler modelRepositoryHandler = new ModelRepositoryHandler();
+        HomeController homeController = new HomeController();
+        ModelRepositoryController modelsController = new ModelRepositoryController();
+        ReportsController reportsController = new ReportsController();
 
-        HttpHandler listModelsHandler = new HandlerBuilder(modelRepositoryHandler.listModelsHandler)
+        HttpHandler homeHandler = new HandlerBuilder(homeController.homeHandler).build();
+
+        HttpHandler listModelsHandler = new HandlerBuilder(modelsController.listModelsHandler)
                 .setAuthorizationHandler(new AuthorizationHandler()).build();
 
-        HttpHandler discoverModelHandler = new HandlerBuilder(modelRepositoryHandler.discoverModelHandler)
+        HttpHandler discoverModelsHandler = new HandlerBuilder(modelsController.discoverModelHandler)
                 .setAuthorizationHandler(new AuthorizationHandler()).build();
 
-        HttpHandler reportHandler = new HandlerBuilder(new ReportsHandler().reportHandler)
+        HttpHandler analyseModelsHandler = new HandlerBuilder(modelsController.analyseModelsHandler)
+                .setAuthorizationHandler(new AuthorizationHandler()).build();
+
+        HttpHandler reportHandler = new HandlerBuilder(reportsController.reportHandler)
                 .setAuthorizationHandler(new AuthorizationHandler()).build();
 
         this.server.createContext(basePath + "/home", homeHandler);
         this.server.createContext(basePath + "/reports", reportHandler);
 
-        this.server.createContext(basePath + "/models/discover", discoverModelHandler);
+        this.server.createContext(basePath + "/models/discover", discoverModelsHandler);
+        this.server.createContext(basePath + "/models/analyse", analyseModelsHandler);
         this.server.createContext(basePath + "/models", listModelsHandler);
     }
 }
