@@ -6,6 +6,7 @@ import org.server.app.controllers.HomeController;
 import org.server.app.controllers.ModelRepositoryController;
 import org.server.app.controllers.ReportsController;
 import org.server.app.utils.AuthorizationHandler;
+import org.server.app.utils.FormDataHandler;
 import org.server.app.utils.HandlerBuilder;
 
 public class HomeRoute {
@@ -24,23 +25,24 @@ public class HomeRoute {
 
         HttpHandler homeHandler = new HandlerBuilder(homeController.homeHandler).build();
 
-        HttpHandler listModelsHandler = new HandlerBuilder(modelsController.listModelsHandler)
-                .setAuthorizationHandler(new AuthorizationHandler()).build();
+        HttpHandler modelsHandler = new HandlerBuilder(modelsController.modelsHandler)
+                .setMiddlewareHandler(new FormDataHandler())
+                .setMiddlewareHandler(new AuthorizationHandler()).build();
 
         HttpHandler discoverModelsHandler = new HandlerBuilder(modelsController.discoverModelHandler)
-                .setAuthorizationHandler(new AuthorizationHandler()).build();
+                .setMiddlewareHandler(new AuthorizationHandler()).build();
 
         HttpHandler analyseModelsHandler = new HandlerBuilder(modelsController.analyseModelsHandler)
-                .setAuthorizationHandler(new AuthorizationHandler()).build();
+                .setMiddlewareHandler(new AuthorizationHandler()).build();
 
         HttpHandler reportHandler = new HandlerBuilder(reportsController.reportHandler)
-                .setAuthorizationHandler(new AuthorizationHandler()).build();
+                .setMiddlewareHandler(new AuthorizationHandler()).build();
 
         this.server.createContext(basePath + "/home", homeHandler);
         this.server.createContext(basePath + "/reports", reportHandler);
 
         this.server.createContext(basePath + "/models/discover", discoverModelsHandler);
         this.server.createContext(basePath + "/models/analyse", analyseModelsHandler);
-        this.server.createContext(basePath + "/models", listModelsHandler);
+        this.server.createContext(basePath + "/models", modelsHandler);
     }
 }

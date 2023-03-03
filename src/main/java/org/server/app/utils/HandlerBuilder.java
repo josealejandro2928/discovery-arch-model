@@ -9,9 +9,9 @@ public class HandlerBuilder {
         this.httpHandler = httpHandler;
     }
 
-    public HandlerBuilder setAuthorizationHandler(HandlerMiddleware authorization) {
-        authorization.setInnerHandler(this.httpHandler);
-        this.httpHandler = authorization;
+    public HandlerBuilder setMiddlewareHandler(HandlerMiddleware middHandler) {
+        middHandler.setInnerHandler(this.httpHandler);
+        this.httpHandler = middHandler;
         return this;
     }
 

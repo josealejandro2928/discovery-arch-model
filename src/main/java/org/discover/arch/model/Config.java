@@ -174,7 +174,7 @@ public class Config {
         this.putInCache("createFolderOutput");
     }
 
-    static void deleteDirectory(Path path) throws IOException {
+    public static void deleteDirectory(Path path) throws IOException {
         File file = new File(path.toAbsolutePath().toString());
         if (file.isDirectory()) {
             FileUtils.deleteDirectory(file);
