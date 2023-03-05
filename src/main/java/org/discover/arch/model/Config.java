@@ -53,6 +53,11 @@ public class Config {
         this.loadCache();
     }
 
+    public void setExternalResources(List<String> externalResources) {
+        this.externalResources = externalResources;
+        this.configObj.put("externalResources", externalResources);
+    }
+
     private void validate() throws Exception {
         File file = new File(rootPath);
         if (!file.exists())

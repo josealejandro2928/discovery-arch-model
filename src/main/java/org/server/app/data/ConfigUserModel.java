@@ -3,6 +3,7 @@ package org.server.app.data;
 import com.mongodb.lang.NonNull;
 import dev.morphia.annotations.*;
 import org.bson.types.ObjectId;
+import org.discover.arch.model.Config;
 import org.server.app.utils.ConfigServer;
 
 import java.nio.file.Path;
@@ -169,5 +170,15 @@ public class ConfigUserModel {
 
     public void setExternalResources(@NonNull List<String> externalResources) {
         this.externalResources = externalResources;
+    }
+
+    public ConfigUserModel syncFromConfig(Config config){
+        this.setArchivesForSearching(config.getArchivesForSearching());
+        this.setAvoidFileNames(config.getAvoidFileNames());
+        this.setExternalResources(config.getExternalResources());
+        this.setExtensionsForSearching(config.getExtensionsForSearching());
+        this.setTimeCacheForDiscoveringSearchOverFilesInSeconds(config.timeCacheForDiscoveringSearchOverFilesInSeconds);
+        this.setTimeCacheForPollingFromExternalResources(config.timeCacheForPollingFromExternalResources);
+        return this;
     }
 }
