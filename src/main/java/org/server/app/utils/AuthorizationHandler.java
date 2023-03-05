@@ -37,15 +37,23 @@ public class AuthorizationHandler extends HandlerMiddleware {
         String token = authorizationHeader.split("Bearer ")[1];
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
         JWTVerifier verifier = JWT.require(algorithm).withIssuer("auth0").build();
-        DecodedJWT jwt = verifier.verify(token);
-        String userId = jwt.getClaim("payload").asMap().get("userId").toString();
+        DecodedJWT jwt;
+        String userId;
+        try {
+            jwt = verifier.verify(token);
+            userId = jwt.getClaim("payload").asMap().get("userId").toString();
+        } catch (Exception e) {
+            throw new ServerError(401, e.getMessage());
+        }
 
         UserModel user = datastore.find(UserModel.class).filter(Filters.eq("_id", new ObjectId(userId))).first();
         if (user == null) throw new ServerError(401, "Invalid user credentials, invalid token");
         exchange.setAttribute("loggedUser", user);
-        ConfigUserModel configUser = datastore.find(ConfigUserModel.class).filter(Filters.eq("user",user)).first();
+        ConfigUserModel configUser = datastore.find(ConfigUserModel.class).filter(Filters.eq("user", user)).first();
         exchange.setAttribute("configUser", configUser);
         this.innerHandler.handle(exchange);
+
+
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.server.app.utils.ServerError;
 
 import java.io.*;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +39,8 @@ public class ModelRepositoryController {
             listModelRepo(exchange);
         } else if (method.equals("POST")) {
             uploadModelToRepo(exchange);
+        } else if (method.equals("DELETE")) {
+            deleteModel(exchange);
         } else {
             throw new ServerError(405, "Not Allowed for /login", null);
         }
@@ -276,6 +279,7 @@ public class ModelRepositoryController {
             throw new ServerError(405, "There is an error on the request", Collections.singletonList(errors));
 
         Map<String, Object> dataOutput = new HashMap<>();
+        System.out.println(files);
         var savedFiles = saveNewLocalModels(configUser, files);
         dataOutput.put("message", "Ok");
         dataOutput.put("savedFiles", savedFiles);
@@ -287,6 +291,28 @@ public class ModelRepositoryController {
         os.close();
 
 
+    }
+
+    void deleteModel(HttpExchange exchange) throws IOException {
+        UserModel loggedUser = (UserModel) exchange.getAttribute("loggedUser");
+        ConfigUserModel configUser = (ConfigUserModel) exchange.getAttribute("configUser");
+        String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Map<String, Object> body = objectMapper.getBodyAsMap(requestBody);
+        if (!body.containsKey("path")) throw new ServerError(400, "A path to the model is required");
+        String pathToData = (String) body.get("path");
+
+        if (!pathToData.contains(loggedUser.getEmail()))
+            throw new ServerError(403, "You are not allowed to perform this op");
+
+        Map<String, Object> dataOutput = new HashMap<>();
+        dataOutput.put("message", "Ok");
+        Config.deleteDirectory(Path.of(pathToData));
+        String response = objectMapper.writeValueAsString(dataOutput);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.length());
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
     }
 
     static List<Path> saveNewLocalModels(ConfigUserModel configUser, List<FormDataHandler.MultiPart> files) throws IOException {

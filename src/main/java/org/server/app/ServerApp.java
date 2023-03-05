@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpServer;
 import org.server.app.data.MongoDbConnection;
+import org.server.app.routes.ConfigRoute;
 import org.server.app.utils.NotFoundHandler;
 import org.server.app.routes.AuthRoute;
 import org.server.app.routes.HomeRoute;
@@ -25,8 +26,10 @@ public class ServerApp {
         // Registering Routes ////////////////////////////
         HomeRoute homeRoute = new HomeRoute(server, "");
         AuthRoute authRoute = new AuthRoute(server, "/auth");
+        ConfigRoute configRoute = new ConfigRoute(server, "/config");
         homeRoute.registerRoutes();
         authRoute.registerRoutes();
+        configRoute.registerRoutes();
         System.out.println("Registered routes successfully");
         /////////////////////////////////////////////////
         server.start();

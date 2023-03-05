@@ -52,7 +52,7 @@ public class AuthController {
             }
 
             String jwt = AuthController.createJWT(user.getId(), 1000 * 60 * 60);
-            String token = String.format("Bearer: %s", jwt);
+            String token = String.format("Bearer %s", jwt);
             Map<String, Object> userToClient = objectMapper.convertValue(user, new TypeReference<>() {
             });
             userToClient.remove("password");

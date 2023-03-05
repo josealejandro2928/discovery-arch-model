@@ -19,6 +19,6 @@ public class AuthRoute {
         HttpHandler loginHandler = new HandlerBuilder(authController.loginHandler).build();
         HttpHandler signinHandler = new HandlerBuilder(authController.signInHandler).build();
         this.server.createContext(basePath + "/login", loginHandler);
-        this.server.createContext(basePath + "/signin", signinHandler);
+        this.server.createContext(basePath + "/signup", signinHandler);
     }
 }
