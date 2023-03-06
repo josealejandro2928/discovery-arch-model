@@ -8,21 +8,26 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Date;
 
 @Entity("users")
 public class UserModel {
     @Id
     private ObjectId id;
     @NonNull
-    private String name;
+    public String name;
     @NonNull
-    private String lastName;
+    public String lastName;
     @NonNull
-    private String email;
+    public String email;
     @NonNull
-    private String password;
+    public String password;
 
-    private boolean isAdmin = false;
+    public boolean isAdmin = false;
+
+    public Date createdAt;
+    public Date editedAt;
+
 
     public UserModel(@NonNull String name, @NonNull String lastName, @NonNull String email, @NonNull String password) throws NoSuchAlgorithmException {
         this.name = name;
@@ -32,13 +37,6 @@ public class UserModel {
 
     }
 
-    public UserModel(ObjectId id, @NonNull String name, @NonNull String lastName, @NonNull String email, @NonNull String password) throws NoSuchAlgorithmException {
-        this.id = id;
-        this.name = name;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = this.hashPassword(password, new byte[16]);
-    }
 
     public String getId() {
         return id.toString();
@@ -46,50 +44,6 @@ public class UserModel {
 
     public void setId(ObjectId id) {
         this.id = id;
-    }
-
-    @NonNull
-    public String getName() {
-        return name;
-    }
-
-    public void setName(@NonNull String name) {
-        this.name = name;
-    }
-
-    @NonNull
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(@NonNull String lastName) {
-        this.lastName = lastName;
-    }
-
-    @NonNull
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(@NonNull String email) {
-        this.email = email;
-    }
-
-    public boolean isAdmin() {
-        return isAdmin;
-    }
-
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
-    }
-
-    @NonNull
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(@NonNull String password) {
-        this.password = password;
     }
 
     @Override
@@ -114,5 +68,12 @@ public class UserModel {
         String newHash = hashPassword(password, new byte[16]);
         return Arrays.equals(this.password.getBytes(), newHash.getBytes());
     }
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = (createdAt == null) ? new Date() : createdAt;
+        editedAt = (editedAt == null) ? createdAt : new Date();
+    }
+
 
 }

@@ -78,7 +78,7 @@ public class AuthController {
             SignInRequest body = objectMapper.readValue(requestBody, SignInRequest.class);
             UserModel userModel = datastore.find(UserModel.class).filter(Filters.eq("email", body.getEmail())).first();
             if (userModel != null) {
-                throw new ServerError(400, "User with email: " + userModel.getEmail() + " already exists", null);
+                throw new ServerError(400, "User with email: " + userModel.email + " already exists", null);
             }
             if (!body.getPassword().equals(body.getConfirmPassword())) {
                 throw new ServerError(400, "Passwords must be equal", null);
@@ -110,7 +110,7 @@ public class AuthController {
         MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
         Datastore datastore = mongoDbConnection.datastore;
         ConfigServer configServer = ConfigServer.getInstance();
-        Path directoryPath = Paths.get(Objects.requireNonNull(configServer.dotenv.get("ROOT_STORAGE")), userModel.getEmail()).toAbsolutePath();
+        Path directoryPath = Paths.get(Objects.requireNonNull(configServer.dotenv.get("ROOT_STORAGE")), userModel.email).toAbsolutePath();
         File file = new File(directoryPath.toString());
         ConfigUserModel configUserModel;
         if (file.exists()) {

@@ -13,9 +13,7 @@ import org.process.models.xmi.EcoreModelHandler;
 import org.process.models.xmi.EolRunner;
 import org.process.models.xmi.EcoreStandAlone;
 import org.process.models.xmi.JavaQueryAADLModelInst;
-import org.server.app.data.ConfigUserModel;
-import org.server.app.data.MongoDbConnection;
-import org.server.app.data.UserModel;
+import org.server.app.data.*;
 import org.server.app.utils.CustomMapMapper;
 import org.server.app.utils.FormDataHandler;
 import org.server.app.utils.ServerError;
@@ -143,7 +141,6 @@ public class ModelRepositoryController {
     void discoverAndConvertModels(HttpExchange exchange) throws Exception {
         Datastore datastore = MongoDbConnection.getInstance().datastore;
         UserModel loggedUser = (UserModel) exchange.getAttribute("loggedUser");
-        Map<String, Object> dataOutput = new HashMap<>();
         ConfigUserModel configUser = (ConfigUserModel) exchange.getAttribute("configUser");
         String configJsonPath = configUser.getPathToConfigJson();
         /////////Listening System.out
@@ -174,11 +171,14 @@ public class ModelRepositoryController {
         ArchModelConverter archModelConverter = new ArchModelConverter(config);
         fileDiscover.analyseModels(archModelConverter);
 
-        dataOutput.put("message", "Ok");
         String loggedData = this.filterLogs(baos.toString());
         String loggedErrorsData = this.filterLogs(baosErr.toString());
-        dataOutput.put("dataLogs", loggedData.split("\n"));
-        dataOutput.put("errorLogs", loggedErrorsData.split("\n"));
+
+        ConversionRes conversionRes = new ConversionRes();
+        conversionRes.setDataLogs(Arrays.asList(loggedData.split("\n")));
+        conversionRes.setErrorLogs(Arrays.asList(loggedErrorsData.split("\n")));
+        conversionRes.setUser(loggedUser);
+        conversionRes = datastore.save(conversionRes);
 
         /// Restoring the prev System print Stream ///
         System.out.flush();
@@ -187,7 +187,7 @@ public class ModelRepositoryController {
         System.setErr(oldPrintStreamError);
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().remove("aaxl2");
 
-        String response = objectMapper.writeValueAsString(dataOutput);
+        String response = objectMapper.writeValueAsString(conversionRes);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(200, response.length());
         OutputStream os = exchange.getResponseBody();
@@ -200,7 +200,6 @@ public class ModelRepositoryController {
     void analyseModels(HttpExchange exchange) throws Exception {
         Datastore datastore = MongoDbConnection.getInstance().datastore;
         UserModel loggedUser = (UserModel) exchange.getAttribute("loggedUser");
-        Map<String, Object> dataOutput = new HashMap<>();
         ConfigUserModel configUser = (ConfigUserModel) exchange.getAttribute("configUser");
         String configJsonPath = configUser.getPathToConfigJson();
 
@@ -233,11 +232,14 @@ public class ModelRepositoryController {
         ecoreModelHandler.processModels(eolRunner, javaQueryAADLModelInst);
         ecoreModelHandler.generateCSVFileFromProcessedModels("results");
 
-        dataOutput.put("message", "Ok");
         String loggedData = this.filterLogs(baos.toString());
         String loggedErrorsData = this.filterLogs(baosErr.toString());
-        dataOutput.put("dataLogs", loggedData.split("\n"));
-        dataOutput.put("errorLogs", loggedErrorsData.split("\n"));
+
+        AnalysisRes analysisRes = new AnalysisRes();
+        analysisRes.setDataLogs(Arrays.asList(loggedData.split("\n")));
+        analysisRes.setErrorLogs(Arrays.asList(loggedErrorsData.split("\n")));
+        analysisRes.setUser(loggedUser);
+        analysisRes = datastore.save(analysisRes);
 
         //// Restoring the prev System print Stream ///
         System.out.flush();
@@ -245,7 +247,7 @@ public class ModelRepositoryController {
         System.err.flush();
         System.setErr(oldPrintStreamError);
 
-        String response = objectMapper.writeValueAsString(dataOutput);
+        String response = objectMapper.writeValueAsString(analysisRes);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(200, response.length());
         OutputStream os = exchange.getResponseBody();
@@ -301,7 +303,7 @@ public class ModelRepositoryController {
         if (!body.containsKey("path")) throw new ServerError(400, "A path to the model is required");
         String pathToData = (String) body.get("path");
 
-        if (!pathToData.contains(loggedUser.getEmail()))
+        if (!pathToData.contains(loggedUser.email))
             throw new ServerError(403, "You are not allowed to perform this op");
 
         Map<String, Object> dataOutput = new HashMap<>();

@@ -10,13 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @Entity("configs")
-public class ConfigUserModel {
+public class ConfigUserModel{
     @Id
     private ObjectId id;
     @NonNull
@@ -45,6 +42,10 @@ public class ConfigUserModel {
     @Reference
     private UserModel user;
 
+    public Date createdAt;
+    public Date editedAt;
+
+
     @NonNull
     public String getPathToConfigJson() {
         return pathToConfigJson;
@@ -61,7 +62,7 @@ public class ConfigUserModel {
     static public ConfigUserModel buildConfig(UserModel user) {
         ConfigServer configServer = ConfigServer.getInstance();
         ConfigUserModel configUser = new ConfigUserModel();
-        Path directoryPath = Paths.get(configServer.dotenv.get("ROOT_STORAGE"), user.getEmail()).toAbsolutePath();
+        Path directoryPath = Paths.get(configServer.dotenv.get("ROOT_STORAGE"), user.email).toAbsolutePath();
         configUser.archivesForSearching = Arrays.asList(Paths.get(directoryPath.toString(), "local_models").toString());
         configUser.timeCacheForDiscoveringSearchOverFilesInSeconds = 300;
         configUser.timeCacheForPollingFromExternalResources = 300;
@@ -180,5 +181,11 @@ public class ConfigUserModel {
         this.setTimeCacheForDiscoveringSearchOverFilesInSeconds(config.timeCacheForDiscoveringSearchOverFilesInSeconds);
         this.setTimeCacheForPollingFromExternalResources(config.timeCacheForPollingFromExternalResources);
         return this;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = (createdAt == null) ? new Date() : createdAt;
+        editedAt = (editedAt == null) ? createdAt : new Date();
     }
 }

@@ -38,8 +38,12 @@ public class HomeRoute {
         HttpHandler reportHandler = new HandlerBuilder(reportsController.reportHandler)
                 .setMiddlewareHandler(new AuthorizationHandler()).build();
 
+        HttpHandler getConversionAnalysisHandler = new HandlerBuilder(reportsController.getConversionAnalysisHandler)
+                .setMiddlewareHandler(new AuthorizationHandler()).build();
+
         this.server.createContext(basePath + "/home", homeHandler);
         this.server.createContext(basePath + "/reports", reportHandler);
+        this.server.createContext(basePath + "/reports/conv_analysis_phase", getConversionAnalysisHandler);
 
         this.server.createContext(basePath + "/models/discover", discoverModelsHandler);
         this.server.createContext(basePath + "/models/analyse", analyseModelsHandler);
