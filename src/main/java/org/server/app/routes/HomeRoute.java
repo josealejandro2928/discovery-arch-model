@@ -24,6 +24,8 @@ public class HomeRoute {
         ReportsController reportsController = new ReportsController();
 
         HttpHandler homeHandler = new HandlerBuilder(homeController.homeHandler).build();
+        HttpHandler invalidCacheHandler = new HandlerBuilder(homeController.invalidCacheHandler).
+                setMiddlewareHandler(new AuthorizationHandler()).build();
 
         HttpHandler modelsHandler = new HandlerBuilder(modelsController.modelsHandler)
                 .setMiddlewareHandler(new FormDataHandler())
@@ -42,6 +44,7 @@ public class HomeRoute {
                 .setMiddlewareHandler(new AuthorizationHandler()).build();
 
         this.server.createContext(basePath + "/home", homeHandler);
+        this.server.createContext(basePath + "/home/invalid_cache", invalidCacheHandler);
         this.server.createContext(basePath + "/reports", reportHandler);
         this.server.createContext(basePath + "/reports/conv_analysis_phase", getConversionAnalysisHandler);
 

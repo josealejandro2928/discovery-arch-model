@@ -8,7 +8,13 @@ import org.discover.arch.model.Config;
 import org.discover.arch.model.ResourcesProviderAnalyzer;
 import org.discover.arch.model.SearchFileTraversal;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.xtext.resource.XtextResourceFactory;
+import org.eclipse.xtext.resource.impl.BinaryGrammarResourceFactoryImpl;
+import org.osate.aadl2.instance.InstancePackage;
 import org.osate.aadl2.util.Aadl2ResourceFactoryImpl;
+import org.osate.xtext.aadl2.Aadl2StandaloneSetup;
 import org.process.models.xmi.EcoreModelHandler;
 import org.process.models.xmi.EolRunner;
 import org.process.models.xmi.EcoreStandAlone;
@@ -155,7 +161,11 @@ public class ModelRepositoryController {
         System.setErr(newPrintStreamError);
 
         Config config = null;
+        /// IMPORTANT INITIALIZATION FOR THE XTEXT AND OSATE MODULES //////////
+        new Aadl2StandaloneSetup().createInjectorAndDoEMFRegistration();
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("aaxl2", new Aadl2ResourceFactoryImpl());
+        InstancePackage.eINSTANCE.eClass();
+
         try {
             config = new Config(configJsonPath);
         } catch (Exception e) {
@@ -203,7 +213,7 @@ public class ModelRepositoryController {
         ConfigUserModel configUser = (ConfigUserModel) exchange.getAttribute("configUser");
         String configJsonPath = configUser.getPathToConfigJson();
 
-        /////////Listening System.out
+//        /////////Listening System.out
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream newPrintStream = new PrintStream(baos);
         PrintStream oldPrintStream = System.out;
@@ -221,7 +231,9 @@ public class ModelRepositoryController {
             throw new ServerError(500, "ERROR LOADING THE CONFIG FILE: ");
         }
 
+//        System.out.println(Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap());
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().clear();
+
         EcoreModelHandler ecoreModelHandler = new EcoreModelHandler(config);
         EcoreStandAlone ecoreStandAlone = EcoreStandAlone.getInstance();
         EolRunner eolRunner = EolRunner.getInstance();
@@ -234,6 +246,8 @@ public class ModelRepositoryController {
 
         String loggedData = this.filterLogs(baos.toString());
         String loggedErrorsData = this.filterLogs(baosErr.toString());
+//        String loggedData = "";
+//        String loggedErrorsData = "";
 
         AnalysisRes analysisRes = new AnalysisRes();
         analysisRes.setDataLogs(Arrays.asList(loggedData.split("\n")));

@@ -159,7 +159,7 @@ public class Config {
     public void createFolderOutput() throws Exception {
 
         if (this.isInCache("createFolderOutput", this.timeCacheForDiscoveringSearchOverFilesInSeconds)) {
-            System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS:"
+            System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
                     + this.timeCacheForDiscoveringSearchOverFilesInSeconds + "s"
                     + "\033[0m");
             return;
