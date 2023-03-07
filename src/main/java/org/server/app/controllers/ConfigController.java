@@ -60,6 +60,12 @@ public class ConfigController {
         if (body.containsKey("externalResources")) {
             config.setExternalResources((List<String>) body.get("externalResources"));
         }
+        if (body.containsKey("timeCacheForDiscoveringSearchOverFilesInSeconds")) {
+            config.setTimeCacheForDiscoveringSearchOverFilesInSeconds((int) body.get("timeCacheForDiscoveringSearchOverFilesInSeconds"));
+        }
+        if (body.containsKey("timeCacheForPollingFromExternalResources")) {
+            config.setTimeCacheForPollingFromExternalResources((int) body.get("timeCacheForPollingFromExternalResources"));
+        }
         config.saveConfig();
         configUser.syncFromConfig(config);
         configUser = datastore.save(configUser);

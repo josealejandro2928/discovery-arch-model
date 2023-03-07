@@ -14,10 +14,8 @@ import org.server.app.utils.ConfigServer;
 import org.server.app.utils.CustomMapMapper;
 import org.server.app.utils.ServerError;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,6 +122,13 @@ public class AuthController {
         file.mkdir();
         Paths.get(directoryPath.toString(), "local_models").toFile().mkdir();
         Paths.get(directoryPath.toString(), "github").toFile().mkdir();
+        Paths.get(directoryPath.toString(), "jupyter").toFile().mkdir();
+        Paths.get(directoryPath.toString(), "results.csv").toFile().createNewFile();
+        File mainJupyterScriptDestFile = Paths.get(directoryPath.toString(), "jupyter", "main.ipynb").toFile();
+        mainJupyterScriptDestFile.createNewFile();
+        File mainJupyterScriptSrcFile = Paths.get("","jupyter","main.ipynb").toFile();
+        copyFileUsingChannel(mainJupyterScriptSrcFile,mainJupyterScriptDestFile);
+
         configUserModel = ConfigUserModel.buildConfig(userModel);
         configUserModel = datastore.save(configUserModel);
         String configJsonStr = objectMapper.writeValueAsString(configUserModel);
@@ -151,5 +156,19 @@ public class AuthController {
                 .withClaim("payload", payloadClaims)
                 .sign(algorithm);
     }
+
+    private static void copyFileUsingChannel(File source, File dest) throws IOException {
+        FileChannel sourceChannel = null;
+        FileChannel destChannel = null;
+        try {
+            sourceChannel = new FileInputStream(source).getChannel();
+            destChannel = new FileOutputStream(dest).getChannel();
+            destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+        }finally{
+            sourceChannel.close();
+            destChannel.close();
+        }
+    }
+
 
 }

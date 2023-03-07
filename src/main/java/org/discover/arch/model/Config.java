@@ -317,4 +317,15 @@ public class Config {
     public List<String> getAvoidFileNames() {
         return avoidFileNames;
     }
+
+    public void setTimeCacheForDiscoveringSearchOverFilesInSeconds(int timeCacheForDiscoveringSearchOverFilesInSeconds) {
+        this.timeCacheForDiscoveringSearchOverFilesInSeconds = timeCacheForDiscoveringSearchOverFilesInSeconds;
+        this.configObj.put("timeCacheForDiscoveringSearchOverFilesInSeconds", timeCacheForDiscoveringSearchOverFilesInSeconds);
+
+    }
+
+    public void setTimeCacheForPollingFromExternalResources(int timeCacheForPollingFromExternalResources) {
+        this.timeCacheForPollingFromExternalResources = timeCacheForPollingFromExternalResources;
+        this.configObj.put("timeCacheForPollingFromExternalResources", timeCacheForPollingFromExternalResources);
+    }
 }

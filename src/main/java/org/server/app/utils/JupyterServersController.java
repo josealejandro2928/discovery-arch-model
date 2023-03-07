@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class JupyterServersController {
     int maxJupyterServers = 5;
     int port = 8015;
     static JupyterServersController instance = null;
     Map<String, JupyterServer> servers = new HashMap<>();
+    ReentrantLock lock = new ReentrantLock();
 
     public static JupyterServersController getInstance() {
         if (instance != null) return instance;
@@ -27,14 +29,34 @@ public class JupyterServersController {
             this.servers.remove(user.email);
         }
         ConfigServer configServer = ConfigServer.getInstance();
-        JupyterServer jp = new JupyterServer(this.port, user, Paths.get(configUserModel.getRootPath(), "jupyter").toAbsolutePath().toString());
+        int serverPort = this.findAPort();
+        String pathToDir = Paths.get(configUserModel.getRootPath(), "jupyter").toAbsolutePath().toString();
+        JupyterServer jp = new JupyterServer(serverPort, user, pathToDir);
         jp.startServer();
         this.servers.put(user.email, jp);
         Map<String, String> data = new HashMap<>();
         data.put("user", user.email);
-        data.put("url", configServer.dotenv.get("HOST") + ":" + this.port);
-        this.port++;
+        data.put("url", configServer.dotenv.get("HOST") + ":" + serverPort);
+        System.out.println("Open jupyter at: " + String.format("http://%s", data.get("url")));
         return data;
+    }
+
+    int findAPort() {
+        this.lock.lock();
+        int basePort = this.port;
+        while (true) {
+            boolean foundAvailablePort = true;
+            for (JupyterServer jp : this.servers.values()) {
+                if (jp.port == basePort) {
+                    foundAvailablePort = false;
+                    break;
+                }
+            }
+            if (foundAvailablePort) break;
+            basePort += 1;
+        }
+        this.lock.unlock();
+        return basePort;
     }
 
     public void stopSession(UserModel user) throws IOException {
