@@ -39,14 +39,13 @@ public class GithubConnector implements ExternalConnector {
     public String loadResource(String externalRepoURL, String directoryPath) throws Exception {
         MetaData metaData = this.extractMetaData(externalRepoURL);
         File clonedDirectory = Paths.get(directoryPath, metaData.name).toFile();
+        Git git = null;
         try {
-//            this.deleteBeforeLoading(clonedDirectory.getAbsolutePath());
             System.out.println("CLONING REPOSITORY: " + metaData.downloadablePath);
-            Git.cloneRepository()
+            git = Git.cloneRepository()
                     .setURI(metaData.downloadablePath)
                     .setDirectory(clonedDirectory)
                     .call();
-//            cleaningAfterDownloadFinished(clonedDirectory.getAbsolutePath());
             System.out.println("FINISH OF CLONING REPOSITORY: " + metaData.downloadablePath);
             configObj.putInCache(externalRepoURL);
             configObj.addMoreArchivesForSearching(directoryPath);
@@ -55,6 +54,9 @@ public class GithubConnector implements ExternalConnector {
             System.out.println("Error cloning the repo from Github");
             error.printStackTrace();
             return null;
+        } finally {
+            System.out.println("CLOSED THE GIT CONNECTION");
+            if (git != null) git.close();
         }
     }
 

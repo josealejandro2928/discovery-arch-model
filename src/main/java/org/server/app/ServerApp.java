@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import com.sun.net.httpserver.HttpServer;
 import org.server.app.data.MongoDbConnection;
 import org.server.app.routes.ConfigRoute;
+import org.server.app.utils.JupyterServersController;
 import org.server.app.utils.NotFoundHandler;
 import org.server.app.routes.AuthRoute;
 import org.server.app.routes.HomeRoute;
@@ -20,6 +21,9 @@ public class ServerApp {
         /// Loading the .env configurations ///
         System.out.println("Loading env configurations");
         ConfigServer.getInstance();
+
+        System.out.println("Preparing Jupyter servers");
+        JupyterServersController.getInstance();
         // Connection with MongoDb //////////////////////
         MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
         System.out.println("Connection to mongo Db successfully: " + mongoDbConnection);

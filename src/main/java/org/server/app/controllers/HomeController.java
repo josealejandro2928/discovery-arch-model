@@ -9,6 +9,7 @@ import org.server.app.data.ConfigUserModel;
 import org.server.app.data.MongoDbConnection;
 import org.server.app.data.UserModel;
 import org.server.app.utils.CustomMapMapper;
+import org.server.app.utils.JupyterServersController;
 
 
 import java.io.File;
@@ -47,5 +48,32 @@ public class HomeController {
         os.write(response.getBytes());
         os.close();
 
+    };
+    public HttpHandler startJupyter = (HttpExchange exchange) -> {
+        UserModel loggedUser = (UserModel) exchange.getAttribute("loggedUser");
+        ConfigUserModel configUserModel = (ConfigUserModel) exchange.getAttribute("configUser");
+        JupyterServersController jupyterServersCtrl = JupyterServersController.getInstance();
+        Map<String, String> data = jupyterServersCtrl.startNewSession(loggedUser,configUserModel);
+        data.put("message", "Ok");
+        String response = objectMapper.writeValueAsString(data);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.length());
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
+
+    };
+    public HttpHandler stopJupyter = (HttpExchange exchange) -> {
+        UserModel loggedUser = (UserModel) exchange.getAttribute("loggedUser");
+        JupyterServersController jupyterServersCtrl = JupyterServersController.getInstance();
+        jupyterServersCtrl.stopSession(loggedUser);
+        Map<String, Object> data = new HashMap<>();
+        data.put("message", "Ok");
+        String response = objectMapper.writeValueAsString(data);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.length());
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
     };
 }

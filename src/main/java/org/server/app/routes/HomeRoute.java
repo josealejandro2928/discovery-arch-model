@@ -27,6 +27,12 @@ public class HomeRoute {
         HttpHandler invalidCacheHandler = new HandlerBuilder(homeController.invalidCacheHandler).
                 setMiddlewareHandler(new AuthorizationHandler()).build();
 
+        HttpHandler startJupyter = new HandlerBuilder(homeController.startJupyter).
+                setMiddlewareHandler(new AuthorizationHandler()).build();
+
+        HttpHandler stopJupyter = new HandlerBuilder(homeController.stopJupyter).
+                setMiddlewareHandler(new AuthorizationHandler()).build();
+
         HttpHandler modelsHandler = new HandlerBuilder(modelsController.modelsHandler)
                 .setMiddlewareHandler(new FormDataHandler())
                 .setMiddlewareHandler(new AuthorizationHandler()).build();
@@ -45,6 +51,8 @@ public class HomeRoute {
 
         this.server.createContext(basePath + "/home", homeHandler);
         this.server.createContext(basePath + "/home/invalid_cache", invalidCacheHandler);
+        this.server.createContext(basePath + "/home/startJupyter", startJupyter);
+        this.server.createContext(basePath + "/home/stopJupyter", stopJupyter);
         this.server.createContext(basePath + "/reports", reportHandler);
         this.server.createContext(basePath + "/reports/conv_analysis_phase", getConversionAnalysisHandler);
 
