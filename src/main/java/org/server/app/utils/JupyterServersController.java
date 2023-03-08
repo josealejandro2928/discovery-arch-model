@@ -36,7 +36,7 @@ public class JupyterServersController {
         this.servers.put(user.email, jp);
         Map<String, String> data = new HashMap<>();
         data.put("user", user.email);
-        data.put("url", configServer.dotenv.get("HOST") + ":" + serverPort);
+        data.put("url", configServer.dotenv.get("HOST") + ":" + serverPort + "/notebook");
         System.out.println("Open jupyter at: " + String.format("http://%s", data.get("url")));
         return data;
     }
