@@ -172,14 +172,16 @@ public class ModelRepositoryController {
             throw new ServerError(500, "ERROR LOADING THE CONFIG FILE: ");
         }
         System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
-        config.createFolderOutput();
-        System.out.println("*********************STAGE 1********************");
-        System.out.println("ANALYZING THE RESOURCES PATHS");
-        ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer(config);
-        List<String> rootPathToAnalyze = resourcesProviderAnalyzer.getFileResourcePaths();
-        SearchFileTraversal fileDiscover = new SearchFileTraversal(config).setSearchPaths(rootPathToAnalyze);
-        ArchModelConverter archModelConverter = new ArchModelConverter(config);
-        fileDiscover.analyseModels(archModelConverter);
+        boolean res = config.createFolderOutput();
+        if (res) {
+            System.out.println("*********************STAGE 1********************");
+            System.out.println("ANALYZING THE RESOURCES PATHS");
+            ResourcesProviderAnalyzer resourcesProviderAnalyzer = new ResourcesProviderAnalyzer(config);
+            List<String> rootPathToAnalyze = resourcesProviderAnalyzer.getFileResourcePaths();
+            SearchFileTraversal fileDiscover = new SearchFileTraversal(config).setSearchPaths(rootPathToAnalyze);
+            ArchModelConverter archModelConverter = new ArchModelConverter(config);
+            fileDiscover.analyseModels(archModelConverter);
+        }
 
         String loggedData = this.filterLogs(baos.toString());
         String loggedErrorsData = this.filterLogs(baosErr.toString());

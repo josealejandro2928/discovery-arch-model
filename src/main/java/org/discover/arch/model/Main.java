@@ -19,7 +19,8 @@ public class Main {
         }
         try {
             System.out.println("CREATING THE OUTPUT STRUCTURE FOLDER");
-            config.createFolderOutput();
+            boolean res = config.createFolderOutput();
+            if(!res) return;
 
             System.out.println("*********************STAGE 1********************");
             System.out.println("ANALYZING THE RESOURCES PATHS");

@@ -156,13 +156,19 @@ public class Config {
         }
     }
 
-    public void createFolderOutput() throws Exception {
+    public boolean createFolderOutput() throws Exception {
 
-        if (this.isInCache("createFolderOutput", this.timeCacheForDiscoveringSearchOverFilesInSeconds)) {
+        int expirationDiscover = this.timeCacheForDiscoveringSearchOverFilesInSeconds;
+        int expirationExternal = this.timeCacheForPollingFromExternalResources;
+        if (this.isInCache("createFolderOutput", expirationDiscover)) {
             System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
-                    + this.timeCacheForDiscoveringSearchOverFilesInSeconds + "s"
+                    + expirationDiscover + "s"
                     + "\033[0m");
-            return;
+
+            Date dateOfEntry = this.cache.get("createFolderOutput");
+            Date expireDate = new Date(dateOfEntry.getTime() + (expirationDiscover * 1000L));
+            System.out.println("THE NEXT TIME AVAILABLE TO RUN THE DISCOVER PHASE WILL BE ON: " + "\033[0;33m" + expireDate + "\033[0m");
+            return false;
         }
         File file = Paths.get(this.rootPath, this.outputFolderName).toFile();
         file.mkdir();
@@ -173,10 +179,26 @@ public class Config {
             new File(Paths.get(file.getPath(), ext).toString()).mkdir();
         }
         new File(Paths.get(file.getPath(), "xmi").toString()).mkdir();
-
-        deleteDirectory(Paths.get(this.rootPath, "github"));
-        new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
         this.putInCache("createFolderOutput");
+
+        ////////GITHUB EXTERNAL RESOURCES AND FORLDER PREPARATION //////////////////
+        File gitHubDirectory = Paths.get(this.rootPath, "github").toFile();
+        if (this.isInCache("gitHubDirectory", expirationExternal)) {
+            System.out.println("\033[0;33m" + "ANALYSIS OVER EXTERNAL RESOURCES WAS MADE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
+                    + expirationExternal + "s"
+                    + "\033[0m");
+
+            Date dateOfEntry = this.cache.get("gitHubDirectory");
+            Date expireDate = new Date(dateOfEntry.getTime() + (expirationExternal * 1000L));
+            System.out.println("THE NEXT TIME AVAILABLE CLONE EXTERNAL MODELS WILL BE ON: " + "\033[0;33m" + expireDate + "\033[0m");
+            return true;
+        } else {
+            deleteDirectory(gitHubDirectory.toPath());
+            new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
+            this.putInCache("gitHubDirectory");
+        }
+
+        return true;
     }
 
     public static void deleteDirectory(Path path) throws IOException {
@@ -272,12 +294,11 @@ public class Config {
     public boolean isInCache(String x, int delay) {
         boolean isStoredInCache = this.cache.containsKey(x);
         if (!isStoredInCache) return false;
-        int secondsToInvalidate = delay;
         Date dateOfEntry = this.cache.get(x);
         Date now = new Date();
         long diff = now.getTime() - dateOfEntry.getTime();
         long diffSeconds = diff / 1000;
-        if (diffSeconds > secondsToInvalidate) {
+        if (diffSeconds > delay) {
             this.cache.remove(x);
             return false;
         }
