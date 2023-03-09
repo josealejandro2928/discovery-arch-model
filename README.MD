@@ -153,6 +153,11 @@ computation.
  | ecoreRequiredFilesFolder | Contain the path to the ecore folder where a required .ecore models are loaded                                           | 
 
 ## Gallery
+<img width="100%" src="./images/image6.png"/>
+<img width="100%" src="./images/image7.png"/>
+<img width="100%" src="./images/image8.png"/>
+<img width="100%" src="./images/image9.png"/>
+<img width="100%" src="./images/image10.png"/>
 <img width="100%" src="./images/image4.png"/>
 
 <img width="100%" src="./images/image5.png"/>
