@@ -2,8 +2,6 @@
 This is a maven project whose main objective is to search for arch models from a set of file paths 
 or web paths to get them, catalog them, get the XMI representation and perform metrics. 
 Right now only support the parsing for aadl files, and the search is only done over a file system.
-In the future, the project will also be available for searching for a given HTTP URI for 
-discovering models on the web.
 
 The main objective of this project is to **convert all the previous models found into XMI format**
 to use **MDE techniques for future preprocessing**.
@@ -93,7 +91,6 @@ The classes are:
 | LoadAADLModel          | Load and convert arch models .aadl into XMI instance model .aaxl2. It uses the OSATE api |
 | CrossReferenceResolver | Resolve the cross reference models in .aadl files.                                       |
 
-<img width="90%" src="./images/image2.png"/>
 
 ### process.model.xmi: ###
 This package takes the path where the XMI processed models are and load the .ecore models from them.
