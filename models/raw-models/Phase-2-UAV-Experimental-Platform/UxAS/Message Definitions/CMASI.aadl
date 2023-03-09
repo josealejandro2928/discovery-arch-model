@@ -209,7 +209,7 @@ public
         MaximumSpeed: data real32.i;
         --Describes the preferred operating mode for most planning purposes.
         --This can be a max range or endurance speed profile, or any other
-        --operating point chosen by a user. This field may not be null.
+        --operating point chosen by a userModel. This field may not be null.
         NominalFlightProfile: data FlightProfile.i;
         --A list of all flight configurations described for this vehicle. Each
         --flight configuration specifies a different mode of flight, for
@@ -490,7 +490,7 @@ public
 	end OperatingRegion.i;
 
 	--Sent to denote that the target id numbers in the list are obsolete
-	--and will not be requested again. This can occur when the user has
+	--and will not be requested again. This can occur when the userModel has
 	--replaced an old task with a new one, or has deleted a task
 	--permanently. This is an optional message that automation services can
 	--ignore, depending on how they manage tasks.

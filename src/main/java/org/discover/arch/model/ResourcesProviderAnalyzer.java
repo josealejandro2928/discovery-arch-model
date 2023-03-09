@@ -11,7 +11,7 @@ public class ResourcesProviderAnalyzer {
     Map<String, ExternalConnector> externalConnectorMap = new HashMap<>();
 
 
-    ResourcesProviderAnalyzer(Config configObj) throws Exception {
+    public ResourcesProviderAnalyzer(Config configObj) throws Exception {
         this.configObj = configObj;
         this.externalConnectorMap.put("github", new GithubConnector(this.configObj));
         this.fileResourcePaths = this.configObj.getArchivesForSearching();

@@ -29,7 +29,7 @@ public class ArchModelConverter {
     List<OutputLoadedModelSchema> conversionOutput = new ArrayList<>();
     Config configObj;
 
-    ArchModelConverter(Config configObj) {
+    public ArchModelConverter(Config configObj) {
         this.configObj = configObj;
         this.rootPath = this.configObj.getRootPath();
         this.extensions = this.configObj.getExtensionsForSearching();

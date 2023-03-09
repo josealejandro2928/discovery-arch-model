@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.apache.commons.io.FileUtils;
+
 public class Config {
     String configPath;
     private String rootPath;
@@ -49,6 +51,11 @@ public class Config {
         this.reports = new HashMap<>();
         validate();
         this.loadCache();
+    }
+
+    public void setExternalResources(List<String> externalResources) {
+        this.externalResources = externalResources;
+        this.configObj.put("externalResources", externalResources);
     }
 
     private void validate() throws Exception {
@@ -152,7 +159,7 @@ public class Config {
     public void createFolderOutput() throws Exception {
 
         if (this.isInCache("createFolderOutput", this.timeCacheForDiscoveringSearchOverFilesInSeconds)) {
-            System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS:"
+            System.out.println("\033[0;33m" + "OUTPUT FOLDER WAS CREATED BEFORE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
                     + this.timeCacheForDiscoveringSearchOverFilesInSeconds + "s"
                     + "\033[0m");
             return;
@@ -166,16 +173,19 @@ public class Config {
             new File(Paths.get(file.getPath(), ext).toString()).mkdir();
         }
         new File(Paths.get(file.getPath(), "xmi").toString()).mkdir();
-        deleteDirectory(Paths.get(this.rootPath, "github").toAbsolutePath());
+
+        deleteDirectory(Paths.get(this.rootPath, "github"));
         new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
         this.putInCache("createFolderOutput");
     }
 
-    static void deleteDirectory(Path path) throws IOException {
-        Files.walk(path)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+    public static void deleteDirectory(Path path) throws IOException {
+        File file = new File(path.toAbsolutePath().toString());
+        if (file.isDirectory()) {
+            FileUtils.deleteDirectory(file);
+        } else {
+            FileUtils.forceDelete(file);
+        }
     }
 
     public List<Map<String, Object>> getConversionLogs() {
@@ -306,5 +316,16 @@ public class Config {
 
     public List<String> getAvoidFileNames() {
         return avoidFileNames;
+    }
+
+    public void setTimeCacheForDiscoveringSearchOverFilesInSeconds(int timeCacheForDiscoveringSearchOverFilesInSeconds) {
+        this.timeCacheForDiscoveringSearchOverFilesInSeconds = timeCacheForDiscoveringSearchOverFilesInSeconds;
+        this.configObj.put("timeCacheForDiscoveringSearchOverFilesInSeconds", timeCacheForDiscoveringSearchOverFilesInSeconds);
+
+    }
+
+    public void setTimeCacheForPollingFromExternalResources(int timeCacheForPollingFromExternalResources) {
+        this.timeCacheForPollingFromExternalResources = timeCacheForPollingFromExternalResources;
+        this.configObj.put("timeCacheForPollingFromExternalResources", timeCacheForPollingFromExternalResources);
     }
 }

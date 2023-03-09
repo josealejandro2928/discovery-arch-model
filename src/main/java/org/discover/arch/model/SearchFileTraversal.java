@@ -24,7 +24,7 @@ public class SearchFileTraversal {
         this.folderOutputName = folderOutputName;
     }
 
-    SearchFileTraversal(Config configObj) {
+    public SearchFileTraversal(Config configObj) {
         this.configObj = configObj;
         this.rootPath = this.configObj.getRootPath();
         this.searchPaths = this.configObj.getArchivesForSearching();

@@ -5,7 +5,7 @@ property set Data_Model is
    Base_Type : list of classifier ( data ) applies to ( data );
    --  The Base_Type property specifies the base type of a data
    --  component type. The classifiers being referenced are those
-   --  defined in the Base_Types package or from user defined
+   --  defined in the Base_Types package or from userModel defined
    --  packages.
 
    Code_Set : aadlinteger applies to ( data );

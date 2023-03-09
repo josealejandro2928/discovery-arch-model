@@ -36,7 +36,7 @@ public class EcoreModelHandler {
         this.rootPathFolder = rootPathFolder;
     }
 
-    void discoverModelFromPath() throws Exception {
+    public void discoverModelFromPath() throws Exception {
         if (rootPathFolder == null)
             throw new Exception("There is not root path for reading the XMI models");
         File rootPathFolderFile = Paths.get(rootPathFolder).toFile();
@@ -56,7 +56,7 @@ public class EcoreModelHandler {
                 });
     }
 
-    void processModels(QueryModel eolBasedModelQuery, QueryModel javaBasedModelQuery) {
+    public void processModels(QueryModel eolBasedModelQuery, QueryModel javaBasedModelQuery) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         int indexFile = 1;
         for (String modelUri : this.uriModels) {
@@ -82,7 +82,7 @@ public class EcoreModelHandler {
         return processedDataFromModel;
     }
 
-    void generateCSVFileFromProcessedModels(String name) {
+    public void generateCSVFileFromProcessedModels(String name) {
         try {
             File file = Paths.get(this.configObj.getRootPath(), name + ".csv").toFile();
             FileWriter outputFile = new FileWriter(file);
