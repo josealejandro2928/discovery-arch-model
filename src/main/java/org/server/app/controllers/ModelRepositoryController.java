@@ -181,6 +181,9 @@ public class ModelRepositoryController {
             SearchFileTraversal fileDiscover = new SearchFileTraversal(config).setSearchPaths(rootPathToAnalyze);
             ArchModelConverter archModelConverter = new ArchModelConverter(config);
             fileDiscover.analyseModels(archModelConverter);
+            fileDiscover.clear();
+            archModelConverter.clear();
+            System.gc();
         }
 
         String loggedData = this.filterLogs(baos.toString());
@@ -245,6 +248,8 @@ public class ModelRepositoryController {
         config.loadJSONFilesGeneratedByDiscoveringPhase();
         ecoreModelHandler.processModels(eolRunner, javaQueryAADLModelInst);
         ecoreModelHandler.generateCSVFileFromProcessedModels("results");
+        ecoreModelHandler.clear();
+        System.gc();
 
         String loggedData = this.filterLogs(baos.toString());
         String loggedErrorsData = this.filterLogs(baosErr.toString());

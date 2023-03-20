@@ -229,12 +229,19 @@ public class EcoreModelHandler {
                 writer.writeNext(row);
             }
             writer.close();
+            dataSource = null;
             System.out.println("GENERATED LEGEND SUCCESSFULLY: " + file.getAbsolutePath());
         } catch (Exception error) {
             System.out.println("Error creating a csv file");
             error.printStackTrace();
         }
 
+    }
+
+    public void clear(){
+        this.processedDataFromModel = null;
+        this.configObj = null;
+        this.uriModels = null;
     }
 }
 

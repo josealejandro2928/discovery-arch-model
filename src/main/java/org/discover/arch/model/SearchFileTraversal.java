@@ -118,6 +118,7 @@ public class SearchFileTraversal {
 
     }
 
+
     static public String getExtension(String path) {
         if (!path.contains(".")) return "txt";
         String[] chunksFileString = path.split("\\.");
@@ -127,5 +128,11 @@ public class SearchFileTraversal {
     public SearchFileTraversal setSearchPaths(List<String> searchPaths) {
         this.searchPaths = searchPaths;
         return this;
+    }
+
+    public void clear(){
+        this.searchPaths = null;
+        this.dataFilesFound = new HashSet<>();
+        this.scanningResult = new HashMap<>();
     }
 }

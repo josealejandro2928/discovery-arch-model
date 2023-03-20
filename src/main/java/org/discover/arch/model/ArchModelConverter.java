@@ -236,4 +236,10 @@ public class ArchModelConverter {
             lock.unlock();
         }
     }
+
+    public void clear(){
+        this.dataModelFiles = null;
+        this.logsOutput = null;
+        this.conversionOutput = null;
+    }
 }
