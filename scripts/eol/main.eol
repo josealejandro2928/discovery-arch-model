@@ -42,10 +42,10 @@ operation getLabelsAndCategories() {
 	    }
 	}
 
-	dataOutput.put("num_hardware_comp",counterHardwareDevices);
-    dataOutput.put("num_software_comp",counterSoftware);
-    dataOutput.put("num_data_comp",counterData);
-    dataOutput.put("num_sys_comp",counterSystem);
+	dataOutput.put("no_hardware_comp",counterHardwareDevices);
+    dataOutput.put("no_software_comp",counterSoftware);
+    dataOutput.put("no_data_comp",counterData);
+    dataOutput.put("no_sys_comp",counterSystem);
 }
 
 // Computes **Understandability** //.
