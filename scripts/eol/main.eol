@@ -10,10 +10,10 @@ operation getSizeModel() {
 	var systemName = ModelImpl!SystemInstance.all().first().name;
     var components = ModelImpl!ComponentInstance.all().size();
     var connectors = ModelImpl!ConnectionInstance.all().size();
-    dataOutput.put("systemName",systemName);
-    dataOutput.put("components",components);
-    dataOutput.put("connectors",connectors);
-    dataOutput.put("size",connectors + components);
+    dataOutput.put("sys_name",systemName);
+    dataOutput.put("no_components",components);
+    dataOutput.put("no_connectors",connectors);
+    dataOutput.put("no_size",connectors + components);
 }
 
 operation getLabelsAndCategories() {
@@ -42,16 +42,16 @@ operation getLabelsAndCategories() {
 	    }
 	}
 
-	dataOutput.put("no_hardware",counterHardwareDevices);
-    dataOutput.put("no_software",counterSoftware);
-    dataOutput.put("no_data_storage",counterData);
-    dataOutput.put("no_sys",counterSystem);
+	dataOutput.put("num_hardware_comp",counterHardwareDevices);
+    dataOutput.put("num_software_comp",counterSoftware);
+    dataOutput.put("num_data_comp",counterData);
+    dataOutput.put("num_sys_comp",counterSystem);
 }
 
 // Computes **Understandability** //.
 operation getMetrics(){
-    var n:Real = dataOutput.get("components").asReal();
-    var c:Real = dataOutput.get("connectors").asReal();
+    var n:Real = dataOutput.get("no_components").asReal();
+    var c:Real = dataOutput.get("no_connectors").asReal();
     var udy:Real = 0;
     if(n > 1){
         udy = c / (n * (n - 1));
