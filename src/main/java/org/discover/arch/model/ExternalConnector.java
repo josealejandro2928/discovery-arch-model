@@ -6,12 +6,12 @@ public interface ExternalConnector {
 
     MetaData extractMetaData(String externalRepoURL) throws InvalidURLConnectorException;
 
-    String loadResource(String externalRepoURL, String directoryPath) throws Exception;
-
-    void cleaningAfterDownloadFinished(String clonedDirectoryRepo) throws IOException;
+    void loadResource(String externalRepoURL, String directoryPath) throws Exception;
 
     boolean isValidPath(String externalRepoURL);
 
+    boolean isReadyForDownload(String path);
+    void deleteBeforeLoading(String clonedDirectoryRepo) throws Exception;
 
 }
 

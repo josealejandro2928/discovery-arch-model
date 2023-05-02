@@ -2,6 +2,7 @@ package org.discover.arch.model;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class ResourcesProviderAnalyzer {
@@ -31,8 +32,6 @@ public class ResourcesProviderAnalyzer {
             if (file.exists())
                 validFilesPaths.add(p);
         }
-        if (validFilesPaths.size() == 0)
-            return false;
         this.fileResourcePaths = validFilesPaths;
         return true;
     }
@@ -41,6 +40,7 @@ public class ResourcesProviderAnalyzer {
         System.out.println("***********************************************************************************************");
         System.out.println("ANALYZING THE EXTERNAL PATHS THIS MAY TAKE A BIT LONGER, DEPENDS OF THE CACHE TIME CONFIGURATION");
         int delayCache = this.configObj.timeCacheForPollingFromExternalResources;
+        long startTime = System.nanoTime();
 
         for (String p : this.externalResourcePaths) {
             Map.Entry<String, ExternalConnector> entrySet = this.externalConnectorMap.entrySet()
@@ -49,9 +49,11 @@ public class ResourcesProviderAnalyzer {
                 System.out.println("Not found connector to external result : " + p);
             else {
                 ExternalConnector connector = entrySet.getValue();
-                if (this.configObj.isInCache(p, delayCache))
-                    continue;
                 String directoryPath = Paths.get(this.configObj.getRootPath(), entrySet.getKey()).toAbsolutePath().toString();
+                // Layer of validation that checks for the  config expiration times
+                if (this.configObj.isInCache(p, delayCache)) {
+                    continue;
+                }
                 try {
                     connector.loadResource(p, directoryPath);
                 } catch (Exception e) {
@@ -61,6 +63,9 @@ public class ResourcesProviderAnalyzer {
             }
 
         }
+        long endTime = System.nanoTime();
+        double elapsedTime = (double) (endTime - startTime) / 1000000000;
+        System.out.println("\033[0;32m" + "ELAPSED TIME: " + new DecimalFormat("0.000").format(elapsedTime) + "s" + "\033[0m");
         System.out.println("EXTERNAL PATHS SUCCESSFULLY SYNCHRONIZED TO THE PROJECT");
         System.out.println("***********************************************************************************************");
     }

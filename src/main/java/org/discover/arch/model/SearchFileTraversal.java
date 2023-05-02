@@ -14,7 +14,6 @@ public class SearchFileTraversal {
     List<String> extensions;
     List<String> searchPaths;
     Set<String> dataFilesFound = new HashSet<>();
-    HashMap<String, String> scanningResult = new HashMap<>();
     private Config configObj = null;
 
     SearchFileTraversal(String rootPath, String[] searchPaths, String[] exts, String folderOutputName) {
@@ -80,9 +79,7 @@ public class SearchFileTraversal {
         }
         long endTime = System.nanoTime();
         double elapsedTime = (double) (endTime - startTime) / 1000000000;
-        this.scanningResult.put("filesMatched", archModelConverter.dataModelFiles.size() + "");
-        this.scanningResult.put("elapsedTime", new DecimalFormat("0.000").format(elapsedTime) + "s");
-        System.out.println("SCANNING RESULTS: " + this.scanningResult);
+        System.out.println("\033[0;32m" + "ELAPSED TIME: " + new DecimalFormat("0.000").format(elapsedTime) + "s" + "\033[0m");
         System.out.println("ANALYSING THE MODELS COMPLETED");
         /////////UPDATING THE CACHE WITH THE ROOTS PATH OF MODELS////////
         rootPathToScan.forEach(this.configObj::putInCache);
@@ -133,6 +130,5 @@ public class SearchFileTraversal {
     public void clear(){
         this.searchPaths = null;
         this.dataFilesFound = new HashSet<>();
-        this.scanningResult = new HashMap<>();
     }
 }

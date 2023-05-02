@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,7 @@ public class EcoreModelHandler {
     public void processModels(QueryModel eolBasedModelQuery, QueryModel javaBasedModelQuery) {
         System.out.println("PARSING AND GETTING THE ECORE OBJECT FROM MODELS XMI");
         int indexFile = 1;
+        long startTime = System.nanoTime();
         for (String modelUri : this.uriModels) {
             try {
                 System.out.println("------------------------------------------------------------------");
@@ -79,6 +81,9 @@ public class EcoreModelHandler {
             }
             indexFile++;
         }
+        long endTime = System.nanoTime();
+        double elapsedTime = (double) (endTime - startTime) / 1000000000;
+        System.out.println("\033[0;32m" + "ELAPSED TIME: " + new DecimalFormat("0.000").format(elapsedTime) + "s" + "\033[0m");
         if (this.processedDataFromModel.size() == 0) return;
         Map<String, Object> itemMetricsObject = this.processedDataFromModel.values().stream().toList().get(0);
         this.qualityMetricsComputed = new ArrayList<>(itemMetricsObject.keySet());

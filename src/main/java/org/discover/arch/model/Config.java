@@ -181,22 +181,22 @@ public class Config {
         new File(Paths.get(file.getPath(), "xmi").toString()).mkdir();
         this.putInCache("createFolderOutput");
 
-        ////////GITHUB EXTERNAL RESOURCES AND FORLDER PREPARATION //////////////////
-        File gitHubDirectory = Paths.get(this.rootPath, "github").toFile();
-        if (this.isInCache("gitHubDirectory", expirationExternal)) {
-            System.out.println("\033[0;33m" + "ANALYSIS OVER EXTERNAL RESOURCES WAS MADE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
-                    + expirationExternal + "s"
-                    + "\033[0m");
-
-            Date dateOfEntry = this.cache.get("gitHubDirectory");
-            Date expireDate = new Date(dateOfEntry.getTime() + (expirationExternal * 1000L));
-            System.out.println("THE NEXT TIME AVAILABLE CLONE EXTERNAL MODELS WILL BE ON: " + "\033[0;33m" + expireDate + "\033[0m");
-            return true;
-        } else {
-            deleteDirectory(gitHubDirectory.toPath());
-            new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
-            this.putInCache("gitHubDirectory");
-        }
+//        ////////GITHUB EXTERNAL RESOURCES AND FOLDER PREPARATION //////////////////
+//        File gitHubDirectory = Paths.get(this.rootPath, "github").toFile();
+//        if (this.isInCache("gitHubDirectory", expirationExternal)) {
+//            System.out.println("\033[0;33m" + "ANALYSIS OVER EXTERNAL RESOURCES WAS MADE\n" + "THE CURRENT TIME INVALIDATION CACHE IS: "
+//                    + expirationExternal + "s"
+//                    + "\033[0m");
+//
+//            Date dateOfEntry = this.cache.get("gitHubDirectory");
+//            Date expireDate = new Date(dateOfEntry.getTime() + (expirationExternal * 1000L));
+//            System.out.println("THE NEXT TIME AVAILABLE CLONE EXTERNAL MODELS WILL BE ON: " + "\033[0;33m" + expireDate + "\033[0m");
+//            return true;
+//        } else {
+//            deleteDirectory(gitHubDirectory.toPath());
+//            new File(Paths.get(this.rootPath, "github").toAbsolutePath().toString()).mkdir();
+//            this.putInCache("gitHubDirectory");
+//        }
 
         return true;
     }
