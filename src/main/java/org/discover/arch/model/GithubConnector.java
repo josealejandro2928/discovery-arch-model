@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -86,9 +87,17 @@ public class GithubConnector implements ExternalConnector {
         try {
             git = Git.open(repoDir);
             git.fetch().call();
-            ObjectId latestCommitId = git.getRepository().resolve("HEAD").toObjectId();
-            ObjectId headOriginId = git.lsRemote().setHeads(true).setTags(false).call().stream().toList().get(0).getObjectId();
-            if (latestCommitId.equals(headOriginId)) {
+            ObjectId localHead = git.getRepository().resolve("HEAD");
+            Collection<Ref> refs = git.lsRemote().setHeads(true).setTags(false).call();
+
+            // Get the hash of the latest commit on the default branch
+            String defaultBranchRef = "refs/heads/" + git.getRepository().getBranch();
+            ObjectId remoteHead = refs.stream()
+                    .filter(s -> s.toString().contains(defaultBranchRef))
+                    .map(Ref::getObjectId)
+                    .findFirst()
+                    .orElse(null);
+            if (localHead.equals(remoteHead)) {
                 System.out.println("\t(No new commits)");
                 return false;
             } else {
