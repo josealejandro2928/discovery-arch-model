@@ -36,7 +36,7 @@ public class JupyterServersController {
         this.servers.put(user.email, jp);
         Map<String, String> data = new HashMap<>();
         data.put("user", user.email);
-        data.put("url", configServer.dotenv.get("HOST") + ":" + serverPort + "/notebook");
+        data.put("url", configServer.dotenv.get("HOST") + ":" + serverPort);
         System.out.println("Open jupyter at: " + String.format("http://%s", data.get("url")));
         return data;
     }
@@ -81,6 +81,7 @@ public class JupyterServersController {
         }
 
         void startServer() throws IOException {
+            System.out.println("Path to the folder: " + this.pathFolder);
             this.processBuilder = new ProcessBuilder("jupyter-lab", "--notebook-dir=" + this.pathFolder,
                     "--no-browser", String.format("--port=%s", this.port));
             this.process = this.processBuilder.start();
