@@ -71,6 +71,7 @@ public class AuthController {
         String method = exchange.getRequestMethod();
         if (method.equals("POST")) {
             MongoDbConnection mongoDbConnection = MongoDbConnection.getInstance();
+            ConfigServer configServer = ConfigServer.getInstance();
             Datastore datastore = mongoDbConnection.datastore;
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             SignInRequest body = objectMapper.readValue(requestBody, SignInRequest.class);
@@ -84,6 +85,9 @@ public class AuthController {
 
             try {
                 userModel = new UserModel(body.getName(), body.getLastName(), body.getEmail(), body.getPassword());
+                if (userModel.email.equals(configServer.dotenv.get("ADMIN_USER_EMAIL"))) {
+                    userModel.isAdmin = true;
+                }
                 userModel = datastore.save(userModel);
             } catch (NoSuchAlgorithmException e) {
                 throw new ServerError(500, e.getMessage());
@@ -126,8 +130,8 @@ public class AuthController {
         Paths.get(directoryPath.toString(), "results.csv").toFile().createNewFile();
         File mainJupyterScriptDestFile = Paths.get(directoryPath.toString(), "jupyter", "main.ipynb").toFile();
         mainJupyterScriptDestFile.createNewFile();
-        File mainJupyterScriptSrcFile = Paths.get("","jupyter","main.ipynb").toFile();
-        copyFileUsingChannel(mainJupyterScriptSrcFile,mainJupyterScriptDestFile);
+        File mainJupyterScriptSrcFile = Paths.get("", "jupyter", "main.ipynb").toFile();
+        copyFileUsingChannel(mainJupyterScriptSrcFile, mainJupyterScriptDestFile);
 
         configUserModel = ConfigUserModel.buildConfig(userModel);
         configUserModel = datastore.save(configUserModel);
@@ -164,7 +168,7 @@ public class AuthController {
             sourceChannel = new FileInputStream(source).getChannel();
             destChannel = new FileOutputStream(dest).getChannel();
             destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        }finally{
+        } finally {
             sourceChannel.close();
             destChannel.close();
         }
